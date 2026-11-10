@@ -187,6 +187,29 @@ try {
   const ans = await page.locator('text=Cutting ad spend by $500').first().innerText();
   ok('Extra. Chat answers with sources', /profit goes from \$12,340/.test(ans), ans.slice(0, 140));
 
+  // interactive tools
+  await page.goto(BASE + '#overview');
+  await page.locator('#be-price').scrollIntoViewIfNeeded();
+  const be0 = await page.locator('text=to break even').first().innerText();
+  await page.locator('#be-price').fill('20');
+  await page.waitForTimeout(300);
+  const be1 = await page.locator('text=to break even').first().innerText();
+  ok('Extra. Break-even tool reacts to price', be0 !== be1 && /You made 820/.test(be1), be1.slice(0, 90));
+  await page.locator('#runway-monthly').fill('-3000');
+  await page.waitForTimeout(200);
+  const rw = await page.getByTestId('runway-text').innerText();
+  ok('Extra. Runway explorer projects run-out', /runs out in 8\.6 months/.test(rw), rw.slice(0, 80));
+  await page.goto(BASE + '#ads');
+  await page.locator('#mix-optimise').scrollIntoViewIfNeeded();
+  const m0 = money((await page.getByTestId('mix-profit').innerText()).match(/\$[\d,]+/)[0]);
+  await page.click('#mix-optimise');
+  await page.waitForTimeout(200);
+  const m1 = money((await page.getByTestId('mix-profit').innerText()).match(/\$[\d,]+/)[0]);
+  ok('Extra. Budget mixer finds a better mix', m1 > m0, `${m0} → ${m1}`);
+  await page.goto(BASE + '#home');
+  await page.getByTestId('focus-image').scrollIntoViewIfNeeded();
+  ok('Extra. Landing focus image renders', await page.getByTestId('focus-image').locator('img').count() === 1);
+
   ok('No page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
 } catch (e) {

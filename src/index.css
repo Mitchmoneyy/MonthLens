@@ -2,9 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Layout concept: an annual report printed in black and white. Hairline rules, mono figures,
-   one heavy display face. Negatives in parentheses, the way accountants write them. */
+/* Layout concept: a financial weekly printed in black and white. Bodoni for headlines and the
+   big numbers, a newsroom grotesk for reading, a narrow ledger mono for figures. Square corners,
+   hairline rules, negatives in parentheses the way accountants write them. */
 :root {
+  --font-display: 'Bodoni Moda', Didot, 'Bodoni 72', Georgia, serif;
+  --font-sans: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, Menlo, monospace;
   --bg: #f1f1ef;
   --surface: #ffffff;
   --raised: #e7e7e5;
@@ -49,8 +53,8 @@ body {
   color: var(--ink);
 }
 body {
-  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-size: 15px;
+  font-family: var(--font-sans);
+  font-size: 15.5px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -65,29 +69,31 @@ body::before {
 h1,
 h2,
 h3 {
-  font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
-.num {
-  font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+.num,
+.font-mono {
+  font-family: var(--font-mono);
+  font-stretch: 87.5%;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-.display {
-  font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
-  font-stretch: 112%;
-  font-weight: 800;
   letter-spacing: -0.02em;
 }
-.condensed {
-  font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
-  font-stretch: 75%;
+.display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums;
 }
+/* small section label: a rule, then sentence-case text */
 .eyebrow {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--mute);
 }
 .gutter {

@@ -135,7 +135,7 @@ function WhatIf({ r, panelRef }: { r: Review; panelRef: React.RefObject<HTMLDivE
           </div>
         </dl>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => setS({})} className="rounded-full border border-current/40 px-3 py-1.5 text-xs">
+          <button type="button" onClick={() => setS({})} className="rounded-[3px] border border-current/40 px-3 py-1.5 text-xs">
             Reset
           </button>
           <button
@@ -144,7 +144,7 @@ function WhatIf({ r, panelRef }: { r: Review; panelRef: React.RefObject<HTMLDivE
               saveScenario('A', describe(s));
               toast('Saved as Scenario A');
             }}
-            className="rounded-full border border-current/40 px-3 py-1.5 text-xs"
+            className="rounded-[3px] border border-current/40 px-3 py-1.5 text-xs"
           >
             Save as A
           </button>
@@ -154,7 +154,7 @@ function WhatIf({ r, panelRef }: { r: Review; panelRef: React.RefObject<HTMLDivE
               saveScenario('B', describe(s));
               toast('Saved as Scenario B · compare in History');
             }}
-            className="rounded-full border border-current/40 px-3 py-1.5 text-xs"
+            className="rounded-[3px] border border-current/40 px-3 py-1.5 text-xs"
           >
             Save as B
           </button>
@@ -300,7 +300,7 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
         {chat.length === 0 && <p className="text-sm text-mute">Ask about this month. Answers use only the numbers on your screen, and every answer lists the figures it used.</p>}
         {chat.map((m: ChatMsg, i) => (
           <div key={i} className={m.role === 'user' ? 'flex justify-end' : ''}>
-            <div className={`max-w-[85%] whitespace-pre-line text-sm ${m.role === 'user' ? 'rounded-2xl rounded-br-sm bg-inv px-4 py-2 text-invink' : ''}`}>
+            <div className={`max-w-[85%] whitespace-pre-line text-sm ${m.role === 'user' ? 'rounded-[3px] bg-inv px-4 py-2 text-invink' : ''}`}>
               {m.text}
               {m.sources && m.sources.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
@@ -321,7 +321,7 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
       </div>
       <div className="no-scrollbar flex gap-2 overflow-x-auto border-t border-line px-4 py-3">
         {SUGGESTIONS.map((s) => (
-          <button key={s} type="button" onClick={() => ask(s)} className="shrink-0 rounded-full border border-line px-3 py-1.5 text-xs hover:border-ink">
+          <button key={s} type="button" onClick={() => ask(s)} className="shrink-0 rounded-[3px] border border-line px-3 py-1.5 text-xs hover:border-ink">
             {s}
           </button>
         ))}
@@ -336,7 +336,7 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
         <label htmlFor="chat-input" className="sr-only">
           Ask a question
         </label>
-        <input id="chat-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="What if I cut ad spend by $500?" className="min-w-0 flex-1 rounded-full border border-line bg-bg px-4 py-2.5 text-sm outline-none focus:border-ink" />
+        <input id="chat-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="What if I cut ad spend by $500?" className="min-w-0 flex-1 rounded-[3px] border border-line bg-bg px-4 py-2.5 text-sm outline-none focus:border-ink" />
         <Button type="submit" disabled={busy || !q.trim()}>
           Ask
         </Button>

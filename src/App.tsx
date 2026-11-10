@@ -4,6 +4,15 @@ import { computeReview, computeReviewWithPrev, monthName, projectPlan, recommend
 import { money, pct } from './lib/format';
 import { CountUp, FormulaProvider, ToastProvider, useToast, Button } from './components/ui';
 import Landing from './pages/Landing';
+import { PageBanner } from './components/PageBanner';
+
+const BANNERS: Partial<Record<string, [string, string]>> = {
+  overview: ['desk', 'The month on one page'],
+  import: ['travel', 'Bring the receipts'],
+  ads: ['cameras', 'Every format, side by side'],
+  advisor: ['pencils', 'Plan the next 30 days'],
+  history: ['print', 'Month after month'],
+};
 import Onboarding from './pages/Onboarding';
 import Overview from './pages/Overview';
 import Import from './pages/Import';
@@ -64,7 +73,7 @@ export function ThemeToggle() {
   const setTheme = useStore((s) => s.setTheme);
   const next = theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system';
   return (
-    <button type="button" onClick={() => setTheme(next)} className="flex h-9 items-center gap-1.5 rounded-full border border-current/30 px-3 font-mono text-[11px] uppercase tracking-wider opacity-80 hover:opacity-100" aria-label={`Theme: ${theme}. Switch to ${next}.`} title={`Theme: ${theme}`}>
+    <button type="button" onClick={() => setTheme(next)} className="flex h-9 items-center gap-1.5 rounded-[3px] border border-current/30 px-3 font-mono text-[11px] uppercase tracking-wider opacity-80 hover:opacity-100" aria-label={`Theme: ${theme}. Switch to ${next}.`} title={`Theme: ${theme}`}>
       <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
         <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
         <path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor" />
@@ -82,7 +91,7 @@ function SummaryBar({ route }: { route: Route }) {
     <header className="sticky z-50 bg-inv text-invink" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
       <div className="gutter mx-auto flex max-w-6xl items-center gap-3 py-2.5 sm:gap-6">
         <a href="#home" className="display shrink-0 text-lg leading-none" aria-label="MonthLens home">
-          Month<span className="font-normal" style={{ fontStretch: '75%' }}>Lens</span>
+          Month<span className="font-normal italic">Lens</span>
         </a>
         <label className="hidden items-center gap-2 md:flex">
           <span className="sr-only">Month</span>
@@ -94,7 +103,7 @@ function SummaryBar({ route }: { route: Route }) {
           <span className="hidden font-mono text-xs opacity-70 sm:inline">{pct(review.m.margin.value)}</span>
         </div>
         <div className="hidden items-center gap-2 lg:flex">
-          <span className="rounded-full border border-current/40 px-2 py-0.5 font-mono text-[11px]">{review.health.score ?? '—'}</span>
+          <span className="rounded-[3px] border border-current/40 px-2 py-0.5 font-mono text-[11px]">{review.health.score ?? '—'}</span>
           <span className="max-w-[12rem] truncate text-xs opacity-80">{review.health.verdict}</span>
         </div>
         <ThemeToggle />
@@ -215,6 +224,7 @@ function Shell() {
     <div className="min-h-full pb-24 sm:pb-12">
       <SummaryBar route={route} />
       <main className="gutter mx-auto max-w-6xl pt-6 sm:pt-8" key={route}>
+        <PageBanner name={BANNERS[route]?.[0] ?? 'desk'} caption={BANNERS[route]?.[1] ?? ''} />
         {route === 'overview' && <Overview />}
         {route === 'import' && <Import />}
         {route === 'ads' && <Ads />}

@@ -6,6 +6,7 @@ import { count, money, pct, ratio } from '../lib/format';
 import { uid } from '../lib/parse/common';
 import { AD_FORMATS, AD_PLATFORMS, type AdFormat, type AdPlatform, type AdRow } from '../lib/types';
 import { useStore } from '../store';
+import { BudgetMixer } from '../components/tools/BudgetMixer';
 
 type ChartKey = 'profit' | 'roas' | 'cpa' | 'ctr';
 const CHARTS: { key: ChartKey; label: string; get: (f: FormatStats) => number | null; fmt: (x: number | null) => string; lowerBetter?: boolean }[] = [
@@ -59,7 +60,7 @@ function Chart({ formats }: { formats: FormatStats[] }) {
     <div>
       <div className="mb-5 flex flex-wrap gap-1" role="tablist" aria-label="Compare by">
         {CHARTS.map((x) => (
-          <button key={x.key} role="tab" aria-selected={k === x.key} onClick={() => setK(x.key)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${k === x.key ? 'border-inv bg-inv text-invink' : 'border-line hover:border-ink'}`}>
+          <button key={x.key} role="tab" aria-selected={k === x.key} onClick={() => setK(x.key)} className={`rounded-[3px] border px-3 py-1.5 text-xs font-semibold ${k === x.key ? 'border-inv bg-inv text-invink' : 'border-line hover:border-ink'}`}>
             {x.label}
           </button>
         ))}
@@ -310,6 +311,11 @@ export default function Ads() {
       <Reveal as="section">
         <SectionTitle eyebrow="Visual comparison" title="Formats side by side" />
         <Chart formats={a.formats} />
+      </Reveal>
+
+      <Reveal as="section">
+        <SectionTitle eyebrow="Drag a budget, or let it find the best split" title="Budget mixer" />
+        <BudgetMixer review={r} key={input.ads.map((x) => x.id + x.spend).join()} />
       </Reveal>
 
       <Reveal as="section">

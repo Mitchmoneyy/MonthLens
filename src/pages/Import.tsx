@@ -97,15 +97,15 @@ function ReviewQueue({ items, setItems }: { items: Item[]; setItems: (f: (x: Ite
                   </span>
                 )}
                 <div className="flex gap-1">
-                  <button type="button" onClick={() => upd(c.id, { status: c.status === 'approved' ? 'pending' : 'approved' })} aria-pressed={c.status === 'approved'} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${c.status === 'approved' ? 'border-inv bg-inv text-invink' : 'border-ink'}`}>
+                  <button type="button" onClick={() => upd(c.id, { status: c.status === 'approved' ? 'pending' : 'approved' })} aria-pressed={c.status === 'approved'} className={`rounded-[3px] border px-3 py-1.5 text-xs font-semibold ${c.status === 'approved' ? 'border-inv bg-inv text-invink' : 'border-ink'}`}>
                     {c.status === 'approved' ? '✓ Approved' : 'Approve'}
                   </button>
                   {c.kind !== 'ad' && (
-                    <button type="button" onClick={() => setEditing(editing === c.id ? null : c.id)} className="rounded-full border border-line px-3 py-1.5 text-xs">
+                    <button type="button" onClick={() => setEditing(editing === c.id ? null : c.id)} className="rounded-[3px] border border-line px-3 py-1.5 text-xs">
                       {editing === c.id ? 'Done' : 'Edit'}
                     </button>
                   )}
-                  <button type="button" onClick={() => upd(c.id, { status: c.status === 'ignored' ? 'pending' : 'ignored' })} className="rounded-full border border-line px-3 py-1.5 text-xs">
+                  <button type="button" onClick={() => upd(c.id, { status: c.status === 'ignored' ? 'pending' : 'ignored' })} className="rounded-[3px] border border-line px-3 py-1.5 text-xs">
                     {c.status === 'ignored' ? 'Undo' : 'Ignore'}
                   </button>
                 </div>
@@ -409,7 +409,7 @@ function PasteTab({ addItems }: { addItems: (c: Candidate[], batch: string) => v
       <label htmlFor="paste-box" className="text-sm text-mute">
         Select everything on a dashboard (Ctrl/Cmd + A), copy, and paste it here.
       </label>
-      <textarea id="paste-box" value={text} onChange={(e) => setText(e.target.value)} rows={10} placeholder={'Gross volume\n$48,200.00\nRefunds  −$1,450.00\nSuccessful payments  820'} className="mt-2 w-full rounded-lg border border-line bg-surface p-4 font-mono text-sm outline-none focus:border-ink" />
+      <textarea id="paste-box" value={text} onChange={(e) => setText(e.target.value)} rows={10} placeholder={'Gross volume\n$48,200.00\nRefunds  −$1,450.00\nSuccessful payments  820'} className="mt-2 w-full rounded-[3px] border border-line bg-surface p-4 font-mono text-sm outline-none focus:border-ink" />
       <div className="mt-3 flex items-center justify-between gap-3">
         <span className="text-sm text-mute">{msg}</span>
         <Button
@@ -509,7 +509,7 @@ function NamedList({ title, hint, items, onChange, idPrefix, total }: { title: s
       <ul className="mt-2 space-y-2">
         {items.map((it, i) => (
           <li key={i} className="grid grid-cols-[1fr_8.5rem_auto] items-center gap-2">
-            <input id={`${idPrefix}-name-${i}`} aria-label={`${title} name`} value={it.name} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm" />
+            <input id={`${idPrefix}-name-${i}`} aria-label={`${title} name`} value={it.name} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} className="min-w-0 rounded-[3px] border border-line bg-surface px-3 py-2 text-sm" />
             <NumberField id={`${idPrefix}-amt-${i}`} value={it.amount} onChange={(v) => onChange(items.map((x, j) => (j === i ? { ...x, amount: v ?? 0 } : x)))} prefix="$" />
             <button type="button" onClick={() => onChange(items.filter((_, j) => j !== i))} className="px-2 text-mute hover:text-ink" aria-label={`Remove ${it.name}`}>
               ✕
@@ -517,7 +517,7 @@ function NamedList({ title, hint, items, onChange, idPrefix, total }: { title: s
           </li>
         ))}
       </ul>
-      <button type="button" onClick={() => onChange([...items, { name: '', amount: 0 }])} className="mt-2 rounded-full border border-line px-3 py-1.5 text-xs hover:border-ink">
+      <button type="button" onClick={() => onChange([...items, { name: '', amount: 0 }])} className="mt-2 rounded-[3px] border border-line px-3 py-1.5 text-xs hover:border-ink">
         + Add {title.toLowerCase().includes('channel') ? 'a channel' : 'a product'}
       </button>
     </div>
@@ -547,7 +547,7 @@ function ManualTab() {
       <div className="grid gap-6 sm:grid-cols-2">
         <label className="block">
           <span className="text-sm text-mute">Month</span>
-          <input id="manual-month" type="month" value={input.month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="mt-1 block w-full rounded-lg border border-line bg-surface px-3 py-2 font-mono text-sm" />
+          <input id="manual-month" type="month" value={input.month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="mt-1 block w-full rounded-[3px] border border-line bg-surface px-3 py-2 font-mono text-sm" />
         </label>
         <div>
           <span className="text-sm text-mute">Monthly profit goal</span>
@@ -556,7 +556,7 @@ function ManualTab() {
       </div>
       {groups.map((g) => (
         <fieldset key={g}>
-          <legend className="mb-4 w-full border-b border-ink pb-2 text-lg font-extrabold" style={{ fontFamily: 'Archivo' }}>
+          <legend className="mb-4 w-full border-b border-ink pb-2 text-lg font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
             {g}
           </legend>
           <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
@@ -587,7 +587,7 @@ function ManualTab() {
         </fieldset>
       ))}
       <fieldset>
-        <legend className="mb-4 w-full border-b border-ink pb-2 text-lg font-extrabold" style={{ fontFamily: 'Archivo' }}>
+        <legend className="mb-4 w-full border-b border-ink pb-2 text-lg font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
           Revenue breakdown
         </legend>
         <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
@@ -645,7 +645,7 @@ export default function Import() {
         {TABS.map((t) => (
           <button key={t.key} id={`tab-${t.key}`} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)} className={`relative shrink-0 px-4 py-3 text-sm ${tab === t.key ? 'font-semibold' : 'text-mute hover:text-ink'}`}>
             {t.label}
-            {t.key === 'questions' && review.missingCore.length > 0 && <span className="num ml-1.5 rounded-full bg-inv px-1.5 text-[10px] text-invink">{Math.min(8, review.missingCore.length)}</span>}
+            {t.key === 'questions' && review.missingCore.length > 0 && <span className="num ml-1.5 rounded-[3px] bg-inv px-1.5 text-[10px] text-invink">{Math.min(8, review.missingCore.length)}</span>}
             {tab === t.key && <span className="absolute inset-x-2 bottom-[-1px] h-[3px] bg-ink" />}
           </button>
         ))}

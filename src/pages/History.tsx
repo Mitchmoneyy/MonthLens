@@ -139,7 +139,7 @@ export default function History() {
                             open(s.id);
                             toast(`Opened ${monthName(s.month)}`);
                           }}
-                          className="rounded-full border border-ink px-3 py-1 text-xs"
+                          className="rounded-[3px] border border-ink px-3 py-1 text-xs"
                         >
                           Open
                         </button>
@@ -150,12 +150,12 @@ export default function History() {
                               del(s.id);
                               setConfirmDel(null);
                             }}
-                            className="rounded-full bg-inv px-3 py-1 text-xs text-invink"
+                            className="rounded-[3px] bg-inv px-3 py-1 text-xs text-invink"
                           >
                             Confirm delete
                           </button>
                         ) : (
-                          <button type="button" onClick={() => setConfirmDel(s.id)} className="rounded-full border border-line px-3 py-1 text-xs">
+                          <button type="button" onClick={() => setConfirmDel(s.id)} className="rounded-[3px] border border-line px-3 py-1 text-xs">
                             Delete
                           </button>
                         )}
@@ -270,14 +270,14 @@ export default function History() {
               </Button>
             </div>
             {code && (
-              <textarea id="share-code" readOnly value={code} rows={3} onFocus={(e) => e.target.select()} className="w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px]" aria-label="Share code" />
+              <textarea id="share-code" readOnly value={code} rows={3} onFocus={(e) => e.target.select()} className="w-full rounded-[3px] border border-line bg-bg p-2 font-mono text-[11px]" aria-label="Share code" />
             )}
             <div className="border-t border-line pt-4">
               <label htmlFor="open-code" className="text-sm font-semibold">
                 Open a code someone sent you
               </label>
               <div className="mt-2 flex gap-2">
-                <input id="open-code" value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="ML1-…" className="min-w-0 flex-1 rounded-full border border-line bg-bg px-4 py-2 font-mono text-xs" />
+                <input id="open-code" value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="ML1-…" className="min-w-0 flex-1 rounded-[3px] border border-line bg-bg px-4 py-2 font-mono text-xs" />
                 <Button
                   variant="secondary"
                   disabled={!paste.trim()}
@@ -353,7 +353,7 @@ export default function History() {
                   setConfirmDel(null);
                   location.hash = 'home';
                 }}
-                className="rounded-full bg-inv px-3 py-1 text-invink"
+                className="rounded-[3px] bg-inv px-3 py-1 text-invink"
               >
                 Delete everything
               </button>

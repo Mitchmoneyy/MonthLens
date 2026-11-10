@@ -125,10 +125,10 @@ export function LensDial({ score, size = 180 }: { score: number | null; size?: n
         const r2 = c - (major ? 22 : 16);
         return <line key={i} x1={c + r1 * Math.cos(a)} y1={c + r1 * Math.sin(a)} x2={c + r2 * Math.cos(a)} y2={c + r2 * Math.sin(a)} stroke={i < on ? 'var(--ink)' : 'var(--line)'} strokeWidth={major ? 2.5 : 1.5} strokeLinecap="round" />;
       })}
-      <text x={c} y={c + 4} textAnchor="middle" fontFamily="Archivo, sans-serif" fontWeight="800" fontSize={size * 0.27} fill="var(--ink)" style={{ fontStretch: '112%' }}>
+      <text x={c} y={c + 4} textAnchor="middle" fontFamily="Bodoni Moda, Didot, serif" fontWeight="700" fontSize={size * 0.27} fill="var(--ink)">
         {score === null ? '—' : Math.round(shown)}
       </text>
-      <text x={c} y={c + size * 0.15} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={size * 0.06} fill="var(--mute)" letterSpacing="1.5">
+      <text x={c} y={c + size * 0.15} textAnchor="middle" fontFamily="Martian Mono, monospace" fontSize={size * 0.06} fill="var(--mute)" letterSpacing="1.5">
         / 100
       </text>
     </svg>
@@ -137,14 +137,14 @@ export function LensDial({ score, size = 180 }: { score: number | null; size?: n
 
 export function Pill({ children, solid = false, hatch = false, className = '' }: { children: ReactNode; solid?: boolean; hatch?: boolean; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider ${solid ? 'border-inv bg-inv text-invink' : 'border-ink/60 text-ink'} ${hatch ? 'border-dashed' : ''} ${className}`}>
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-[3px] border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider ${solid ? 'border-inv bg-inv text-invink' : 'border-ink/60 text-ink'} ${hatch ? 'border-dashed' : ''} ${className}`}>
       {children}
     </span>
   );
 }
 
 export function Button({ children, onClick, variant = 'primary', className = '', disabled, type = 'button', id }: { children: ReactNode; onClick?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; className?: string; disabled?: boolean; type?: 'button' | 'submit'; id?: string }) {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none';
+  const base = 'inline-flex items-center justify-center gap-2 rounded-[3px] px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none';
   const v = variant === 'primary' ? 'bg-inv text-invink hover:opacity-85' : variant === 'secondary' ? 'border border-ink text-ink hover:bg-ink hover:text-bg' : 'text-ink underline-offset-4 hover:underline px-2';
   return (
     <button id={id} type={type} disabled={disabled} onClick={onClick} className={`${base} ${v} ${className}`}>
@@ -177,7 +177,7 @@ export function NumberField({ id, value, onChange, prefix, suffix, placeholder =
     if (!focused.current) setText(value === null || value === undefined ? '' : String(Math.round(value * 100) / 100));
   }, [value]);
   return (
-    <div className={`flex items-center rounded-lg border border-line bg-surface focus-within:border-ink ${className}`}>
+    <div className={`flex items-center rounded-[3px] border border-line bg-surface focus-within:border-ink ${className}`}>
       {prefix && <span className="pl-3 text-sm text-mute">{prefix}</span>}
       <input
         id={id}
@@ -204,7 +204,7 @@ export function SectionTitle({ eyebrow, title, right }: { eyebrow?: string; titl
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-ink pb-2">
       <div>
         {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
-        <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl" style={{ fontStretch: '105%' }}>
+        <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
           {title}
         </h2>
       </div>
@@ -230,11 +230,11 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       {children}
       {m && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setM(null)} role="dialog" aria-modal="true" aria-label={`${m.label} formula`}>
-          <div className="rise w-full max-w-md rounded-t-2xl border border-line bg-surface p-6 sm:rounded-2xl" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }} onClick={(e) => e.stopPropagation()}>
+          <div className="rise w-full max-w-md rounded-t-2xl border border-line bg-surface p-6 sm:rounded-[3px]" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }} onClick={(e) => e.stopPropagation()}>
             <div className="eyebrow">How this is calculated</div>
             <h3 className="mt-1 text-2xl font-extrabold">{m.label}</h3>
             <div className="num mt-3 text-3xl font-semibold">{fmtUnit(m.value, m.unit)}</div>
-            <div className="mt-4 rounded-lg bg-raised px-3 py-2 font-mono text-sm">{m.formula}</div>
+            <div className="mt-4 rounded-[3px] bg-raised px-3 py-2 font-mono text-sm">{m.formula}</div>
             <table className="mt-4 w-full text-sm">
               <tbody>
                 {m.inputs.map((i) => (
@@ -249,7 +249,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
             {m.partial && !m.missing.length && <p className="mt-3 text-sm text-mute">Some optional lines were not provided and are counted as $0.</p>}
             <div className="mt-5 flex justify-end gap-2">
               {m.missing.length > 0 && (
-                <a href="#import" onClick={() => setM(null)} className="rounded-full border border-ink px-4 py-2 text-sm font-semibold">
+                <a href="#import" onClick={() => setM(null)} className="rounded-[3px] border border-ink px-4 py-2 text-sm font-semibold">
                   Add missing numbers
                 </a>
               )}
@@ -292,7 +292,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastCtx.Provider value={show}>
       {children}
       <div aria-live="polite" className="pointer-events-none fixed inset-x-0 z-[80] flex justify-center px-4" style={{ bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))' }}>
-        {msg && <div className="rise rounded-full bg-inv px-5 py-2.5 text-sm font-medium text-invink shadow-lg">{msg}</div>}
+        {msg && <div className="rise rounded-[3px] bg-inv px-5 py-2.5 text-sm font-medium text-invink shadow-lg">{msg}</div>}
       </div>
     </ToastCtx.Provider>
   );

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PhotoStrip, photo } from '../components/PhotoStrip';
 import { ScrollStory } from '../components/ScrollStory';
+import { FocusImage } from '../components/FocusImage';
 import { Button, CountUp, LensDial, Reveal, Slider } from '../components/ui';
 import { ThemeToggle, go } from '../App';
 import { applyScenario, computeReview, recommend } from '../lib/calc';
@@ -31,7 +32,7 @@ function TryIt() {
   const r = useMemo(() => computeReview(applyScenario(base, { pricePct: price / 100, cutFormats: pause ? ['Story / Reel'] : [] })), [base, price, pause]);
   const delta = (r.m.netProfit.value ?? 0) - (r0.m.netProfit.value ?? 0);
   return (
-    <div className="grid gap-px overflow-hidden rounded-2xl border border-ink bg-ink md:grid-cols-[1.1fr_1fr]">
+    <div className="grid gap-px overflow-hidden rounded-[3px] border border-ink bg-ink md:grid-cols-[1.1fr_1fr]">
       <div className="bg-surface p-6 sm:p-8">
         <div className="eyebrow">Try it · sample e-commerce month</div>
         <h3 className="mt-2 text-2xl font-extrabold">Move a lever. Watch profit move.</h3>
@@ -104,7 +105,7 @@ export default function Landing() {
     <div className="min-h-full">
       <header className="gutter mx-auto flex max-w-6xl items-center justify-between py-5">
         <span className="display text-xl">
-          Month<span className="font-normal" style={{ fontStretch: '75%' }}>Lens</span>
+          Month<span className="font-normal italic">Lens</span>
         </span>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -172,6 +173,10 @@ export default function Landing() {
         </Reveal>
       </section>
 
+      <section aria-label="Bring last month into focus" className="mb-16 sm:mb-24">
+        <FocusImage src={photo('flatlay')} alt="Wallet, phone, watch and headphones laid out on a dark table" before="Last month, as you remember it." after="Last month, in focus." />
+      </section>
+
       <section className="gutter mx-auto max-w-6xl pb-16 sm:pb-24">
         <Reveal>
           <h2 className="display max-w-3xl text-3xl sm:text-5xl">A CFO and an ad analyst, in one page a month.</h2>
@@ -234,7 +239,7 @@ export default function Landing() {
       <section className="bg-inv text-invink">
         <div className="gutter mx-auto flex max-w-6xl flex-col items-start gap-6 py-16 sm:flex-row sm:items-end sm:justify-between">
           <h2 className="display max-w-2xl text-3xl sm:text-5xl">Five clicks to last month, in plain English.</h2>
-          <button id="cta-start-bottom" type="button" onClick={() => go('start')} className="rounded-full bg-invink px-7 py-3.5 text-base font-semibold text-inv transition hover:opacity-85">
+          <button id="cta-start-bottom" type="button" onClick={() => go('start')} className="rounded-[3px] bg-invink px-7 py-3.5 text-base font-semibold text-inv transition hover:opacity-85">
             Start in 60 seconds
           </button>
         </div>

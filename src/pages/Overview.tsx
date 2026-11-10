@@ -8,6 +8,8 @@ import { BUSINESS_TYPES } from '../lib/fields';
 import { fmtUnit, money, pct } from '../lib/format';
 import { saveFile } from '../lib/runtime';
 import { nav, useStore } from '../store';
+import { BreakEven } from '../components/tools/BreakEven';
+import { RunwayExplorer } from '../components/tools/RunwayExplorer';
 
 function Bars({ items, total }: { items: { name: string; amount: number }[]; total: number | null }) {
   if (!items.length) return <p className="text-sm text-faint">Not provided. Import a product or order export to fill this in.</p>;
@@ -382,6 +384,12 @@ export default function Overview() {
         </div>
       </Reveal>
 
+      {/* Break-even */}
+      <Reveal as="section">
+        <SectionTitle eyebrow="Drag to explore" title="Break-even & goal" />
+        <BreakEven review={r} />
+      </Reveal>
+
       {/* Cash */}
       <Reveal as="section">
         <SectionTitle eyebrow="Bank account" title="Cash" />
@@ -408,10 +416,14 @@ export default function Overview() {
         </p>
       </Reveal>
 
+      <Reveal as="section">
+        <RunwayExplorer review={r} />
+      </Reveal>
+
       {/* Formulas */}
       <Reveal as="section">
         <details className="border-t border-ink pt-4">
-          <summary className="cursor-pointer text-lg font-extrabold" style={{ fontFamily: 'Archivo' }}>
+          <summary className="cursor-pointer text-lg font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
             All formulas
           </summary>
           <div className="mt-4 overflow-x-auto">

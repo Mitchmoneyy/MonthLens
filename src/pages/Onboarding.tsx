@@ -13,7 +13,7 @@ const ADS = ['Meta', 'Google', 'TikTok', 'Pinterest', 'Snapchat', 'LinkedIn', 'M
 
 function Chip({ on, label, onClick, id }: { on: boolean; label: string; onClick: () => void; id: string }) {
   return (
-    <button id={id} type="button" aria-pressed={on} onClick={onClick} className={`flex items-center justify-between gap-4 rounded-xl border px-5 py-4 text-left text-lg font-semibold transition ${on ? 'border-inv bg-inv text-invink' : 'border-line bg-surface hover:border-ink'}`}>
+    <button id={id} type="button" aria-pressed={on} onClick={onClick} className={`flex items-center justify-between gap-4 rounded-[3px] border px-5 py-4 text-left text-lg font-semibold transition ${on ? 'border-inv bg-inv text-invink' : 'border-line bg-surface hover:border-ink'}`}>
       {label}
       <span className={`flex h-6 w-6 items-center justify-center rounded-full border ${on ? 'border-invink' : 'border-line'}`} aria-hidden>
         {on && <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" strokeWidth="2" /></svg>}
@@ -61,7 +61,7 @@ export default function Onboarding() {
     <div className="flex min-h-full flex-col">
       <header className="gutter mx-auto flex w-full max-w-5xl items-center justify-between gap-4 py-5">
         <a href="#home" className="display text-xl">
-          Month<span className="font-normal" style={{ fontStretch: '75%' }}>Lens</span>
+          Month<span className="font-normal italic">Lens</span>
         </a>
         <div className="flex items-center gap-4">
           <span className="num text-xs text-mute" aria-label={`${secs} seconds so far`}>
@@ -107,7 +107,7 @@ export default function Onboarding() {
                     setType(b.key);
                     setTimeout(() => setStep(1), 220);
                   }}
-                  className={`group overflow-hidden rounded-xl border-2 bg-surface text-left transition ${type === b.key ? 'border-ink' : 'border-transparent hover:border-line'}`}
+                  className={`group overflow-hidden rounded-[3px] border-2 bg-surface text-left transition ${type === b.key ? 'border-ink' : 'border-transparent hover:border-line'}`}
                 >
                   <div className="aspect-[4/5] overflow-hidden">
                     <img src={photo(b.photo)} alt="" className="photo h-full w-full object-cover transition duration-500 group-hover:scale-105" />
@@ -150,7 +150,7 @@ export default function Onboarding() {
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {[3000, 5000, 10000, 15000, 25000, 50000].map((g) => (
-                <button key={g} type="button" onClick={() => setGoal(g)} className={`rounded-full border px-3 py-1.5 font-mono text-xs ${goal === g ? 'border-inv bg-inv text-invink' : 'border-line hover:border-ink'}`}>
+                <button key={g} type="button" onClick={() => setGoal(g)} className={`rounded-[3px] border px-3 py-1.5 font-mono text-xs ${goal === g ? 'border-inv bg-inv text-invink' : 'border-line hover:border-ink'}`}>
                   {money(g, { compact: true })}
                 </button>
               ))}
