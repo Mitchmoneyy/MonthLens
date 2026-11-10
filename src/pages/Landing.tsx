@@ -11,18 +11,18 @@ import { SAMPLES } from '../lib/samples';
 import { useStore } from '../store';
 
 const STRIP = [
-  { src: photo('flatlay'), caption: 'E-commerce' },
-  { src: photo('code'), caption: 'SaaS' },
-  { src: photo('desk'), caption: 'Courses' },
-  { src: photo('studio'), caption: 'Agencies' },
-  { src: photo('cameras'), caption: 'Creators' },
-  { src: photo('brand'), caption: 'Brand studios' },
-  { src: photo('phone'), caption: 'Services' },
-  { src: photo('print'), caption: 'Print shops' },
-  { src: photo('tools'), caption: 'Makers' },
-  { src: photo('device'), caption: 'Apps' },
-  { src: photo('travel'), caption: 'Guides' },
-  { src: photo('pencils'), caption: 'Stationery' },
+  { src: photo('flatlay', true), caption: 'E-commerce' },
+  { src: photo('code', true), caption: 'SaaS' },
+  { src: photo('desk', true), caption: 'Courses' },
+  { src: photo('studio', true), caption: 'Agencies' },
+  { src: photo('cameras', true), caption: 'Creators' },
+  { src: photo('brand', true), caption: 'Brand studios' },
+  { src: photo('phone', true), caption: 'Services' },
+  { src: photo('print', true), caption: 'Print shops' },
+  { src: photo('tools', true), caption: 'Makers' },
+  { src: photo('device', true), caption: 'Apps' },
+  { src: photo('travel', true), caption: 'Guides' },
+  { src: photo('pencils', true), caption: 'Stationery' },
 ];
 
 function TryIt() {
@@ -133,7 +133,7 @@ export default function Landing() {
               Start in 60 seconds
             </Button>
             <Button variant="ghost" onClick={() => go('overview')}>
-              See a sample review →
+              {onboarded ? 'Open my review →' : 'See a sample review →'}
             </Button>
           </div>
           <div className="mt-4">
@@ -142,7 +142,7 @@ export default function Landing() {
           <p className="mt-6 font-mono text-xs text-mute">No account · Works offline · Computer and phone</p>
         </div>
         <div className="relative">
-          <img src={photo('typing')} alt="Hands typing on a laptop at a clean desk" className="photo aspect-[4/5] w-full max-w-full object-cover md:aspect-[4/5]" />
+          <img src={photo('typing')} alt="Hands typing on a laptop at a clean desk" fetchPriority="high" decoding="async" className="photo aspect-[4/5] w-full max-w-full object-cover md:aspect-[4/5]" />
           <div className="absolute -bottom-6 left-4 right-4 border border-ink bg-surface p-4 sm:left-auto sm:right-[-12px] sm:w-72">
             <div className="flex items-center justify-between">
               <span className="eyebrow">Sample · October</span>
@@ -219,7 +219,7 @@ export default function Landing() {
 
       <section className="gutter mx-auto grid max-w-6xl items-center gap-10 pb-16 sm:pb-24 md:grid-cols-2">
         <Reveal>
-          <img src={photo('desk')} alt="Open notebook, phone and laptop on a desk" className="photo aspect-[4/3] w-full max-w-full object-cover" />
+          <img src={photo('desk')} alt="Open notebook, phone and laptop on a desk" loading="lazy" decoding="async" className="photo aspect-[4/3] w-full max-w-full object-cover" />
         </Reveal>
         <Reveal>
           <h2 className="display text-3xl sm:text-4xl">Bring the numbers the way you have them.</h2>

@@ -104,3 +104,21 @@ describe('benchmarks', () => {
     expect(tierOf(80, cac)).toBe('Below Average');
   });
 });
+
+import { questionOrder } from '../fields';
+describe('guided questions follow onboarding answers', () => {
+  it('asks about the ad platforms that were picked, in place of the default', () => {
+    const q = questionOrder('ecommerce', ['Google', 'TikTok', 'Pinterest']);
+    expect(q).toContain('adSpendGoogle');
+    expect(q).toContain('adSpendTiktok');
+    expect(q).toContain('adSpendOther');
+    expect(q).not.toContain('adSpendMeta');
+    expect(q.indexOf('adSpendGoogle')).toBeLessThan(8);
+  });
+  it('skips ad spend entirely when they run no ads', () => {
+    expect(questionOrder('ecommerce', ['None yet']).some((k) => k.startsWith('adSpend'))).toBe(false);
+  });
+  it('adds ad spend for business types that do not ask by default', () => {
+    expect(questionOrder('saas', ['Meta'])).toContain('adSpendMeta');
+  });
+});

@@ -1,4 +1,4 @@
-import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useStore, previousInput, seriesInputs } from './store';
 import { computeReview, computeReviewWithPrev, monthName, projectPlan, recommend } from './lib/calc';
 import { money, pct } from './lib/format';
@@ -15,21 +15,40 @@ const BANNERS: Partial<Record<string, [string, string]>> = {
   account: ['phone', 'Your months on every device'],
   creators: ['device', 'The people behind your ads'],
 };
-import Onboarding from './pages/Onboarding';
-import Overview from './pages/Overview';
-import Import from './pages/Import';
-import Ads from './pages/Ads';
-import Advisor from './pages/Advisor';
-import History from './pages/History';
-import Account from './pages/Account';
-import Creators from './pages/Creators';
-import Privacy from './pages/Privacy';
+// Each tab is its own chunk: the landing page loads only what it shows.
+const pages = {
+  start: () => import('./pages/Onboarding'),
+  overview: () => import('./pages/Overview'),
+  import: () => import('./pages/Import'),
+  ads: () => import('./pages/Ads'),
+  advisor: () => import('./pages/Advisor'),
+  history: () => import('./pages/History'),
+  account: () => import('./pages/Account'),
+  creators: () => import('./pages/Creators'),
+  privacy: () => import('./pages/Privacy'),
+};
+const Onboarding = lazy(pages.start);
+const Overview = lazy(pages.overview);
+const Import = lazy(pages.import);
+const Ads = lazy(pages.ads);
+const Advisor = lazy(pages.advisor);
+const History = lazy(pages.history);
+const Account = lazy(pages.account);
+const Creators = lazy(pages.creators);
+const Privacy = lazy(pages.privacy);
+
+/** Fetch the other tabs while the browser is idle, so switching is instant. */
+function preloadPages() {
+  const run = () => Object.values(pages).forEach((load) => void load().catch(() => {}));
+  if ('requestIdleCallback' in window) (window as any).requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 1500);
+}
 import { useAccount } from './account';
 import { isStandalone, useInstall } from './install';
 import { syncStatusBar } from './native';
 import { InstallBanner, UpdateBanner } from './components/InstallApp';
 import { decodeShare } from './lib/share';
-import type { MonthInput } from './lib/types';
+import type { MonthInput, Snapshot } from './lib/types';
 import { BUSINESS_TYPES } from './lib/fields';
 
 export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history' | 'account' | 'creators' | 'privacy';
@@ -57,18 +76,23 @@ export function go(route: Route) {
 }
 
 /** Everything derived from the current month. All pages read from here. */
+function deriveReview(input: MonthInput, snapshots: Snapshot[]) {
+  const prev = previousInput(input, snapshots);
+  const review = computeReviewWithPrev(input, prev);
+  const prevReview = prev ? computeReview(prev) : null;
+  const series = seriesInputs(input, snapshots).map((i) => computeReview(i));
+  const recs = recommend(input);
+  const projected = projectPlan(input, recs.slice(0, 3));
+  return { input, review, prev, prevReview, series, recs, projected };
+}
+// The top bar and the open page ask for the same thing; work it out once per change.
+let lastDerived: { input: MonthInput; snapshots: Snapshot[]; value: ReturnType<typeof deriveReview> } | null = null;
+
 export function useReviewData() {
   const input = useStore((s) => s.input);
   const snapshots = useStore((s) => s.snapshots);
-  return useMemo(() => {
-    const prev = previousInput(input, snapshots);
-    const review = computeReviewWithPrev(input, prev);
-    const prevReview = prev ? computeReview(prev) : null;
-    const series = seriesInputs(input, snapshots).map((i) => computeReview(i));
-    const recs = recommend(input);
-    const projected = projectPlan(input, recs.slice(0, 3));
-    return { input, review, prev, prevReview, series, recs, projected };
-  }, [input, snapshots]);
+  if (!lastDerived || lastDerived.input !== input || lastDerived.snapshots !== snapshots) lastDerived = { input, snapshots, value: deriveReview(input, snapshots) };
+  return lastDerived.value;
 }
 
 function useTheme() {
@@ -247,12 +271,27 @@ function SharedOpen({ code, onDone }: { code: string; onDone: () => void }) {
   );
 }
 
+function PageLoading() {
+  return (
+    <div className="gutter mx-auto max-w-6xl py-10" aria-busy="true" aria-label="Loading">
+      <div className="scan h-1 max-w-xs" />
+    </div>
+  );
+}
+
 function Shell() {
   useTheme();
   const [{ route, share }, setR] = useState(readRoute);
   useEffect(() => {
-    const on = () => setR(readRoute());
+    const on = () =>
+      setR((cur) => {
+        const next = readRoute();
+        // a new tab starts at its top, not wherever the last one was scrolled to
+        if (next.route !== cur.route) window.scrollTo(0, 0);
+        return next;
+      });
     window.addEventListener('hashchange', on);
+    preloadPages();
     return () => window.removeEventListener('hashchange', on);
   }, []);
   useEffect(() => {
@@ -272,8 +311,8 @@ function Shell() {
     );
   }
   if (route === 'home') return <Landing />;
-  if (route === 'start') return <Onboarding />;
-  if (route === 'privacy') return <Privacy />;
+  if (route === 'start' || route === 'privacy')
+    return <Suspense fallback={<PageLoading />}>{route === 'start' ? <Onboarding /> : <Privacy />}</Suspense>;
   return (
     <div className="min-h-full pb-24 sm:pb-12">
       <SummaryBar route={route} />
@@ -281,13 +320,17 @@ function Shell() {
       <main className="gutter mx-auto max-w-6xl pt-6 sm:pt-8" key={route}>
         {route === 'overview' && <InstallBanner />}
         <PageBanner name={BANNERS[route]?.[0] ?? 'desk'} caption={BANNERS[route]?.[1] ?? ''} />
-        {route === 'overview' && <Overview />}
-        {route === 'import' && <Import />}
-        {route === 'ads' && <Ads />}
-        {route === 'advisor' && <Advisor />}
-        {route === 'history' && <History />}
-        {route === 'account' && <Account />}
-        {route === 'creators' && <Creators />}
+        <Suspense fallback={<PageLoading />}>
+          <div className="rise">
+            {route === 'overview' && <Overview />}
+            {route === 'import' && <Import />}
+            {route === 'ads' && <Ads />}
+            {route === 'advisor' && <Advisor />}
+            {route === 'history' && <History />}
+            {route === 'account' && <Account />}
+            {route === 'creators' && <Creators />}
+          </div>
+        </Suspense>
       </main>
       <BottomNav route={route} />
     </div>

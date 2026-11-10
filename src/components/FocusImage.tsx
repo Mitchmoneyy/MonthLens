@@ -14,7 +14,7 @@ export function FocusImage({ src, alt, before, after }: { src: string; alt: stri
     let raf = 0;
     const update = () => {
       raf = 0;
-      setSize({ w: window.innerWidth, h: window.innerHeight });
+      setSize((cur) => (cur.w === window.innerWidth && cur.h === window.innerHeight ? cur : { w: window.innerWidth, h: window.innerHeight }));
       if (still) return;
       const el = outer.current;
       if (!el) return;
@@ -48,7 +48,7 @@ export function FocusImage({ src, alt, before, after }: { src: string; alt: stri
     <div ref={outer} style={{ height: still ? 'auto' : '240vh' }} data-testid="focus-image">
       <div className={`${still ? 'relative h-[70svh]' : 'sticky h-[100svh]'} overflow-hidden`} style={still ? undefined : { top: 'env(safe-area-inset-top, 0px)' }}>
         <div className="absolute inset-0" style={{ clipPath: `circle(${r}px at 50% 50%)` }}>
-          <img src={src} alt={alt} className="photo h-full w-full object-cover" style={{ filter: `grayscale(1) contrast(1.05) blur(${blur.toFixed(2)}px)`, transform: `scale(${1.12 - 0.12 * e})` }} />
+          <img src={src} alt={alt} loading="lazy" decoding="async" className="photo h-full w-full object-cover" style={{ filter: `grayscale(1) contrast(1.05) blur(${blur.toFixed(2)}px)`, transform: `scale(${1.12 - 0.12 * e})` }} />
         </div>
         {e < 0.98 && (
           <svg className="pointer-events-none absolute left-1/2 top-1/2" width={ringD} height={ringD} viewBox="-50 -50 100 100" style={{ transform: `translate(-50%,-50%) rotate(${e * 140}deg)`, opacity: 1 - e }} aria-hidden>

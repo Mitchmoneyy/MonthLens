@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { go, useReviewData } from '../App';
 import { Button, NumberField, Pill, SectionTitle, Slider, useToast } from '../components/ui';
 import { computeReview } from '../lib/calc';
-import { FIELD, FIELDS, PRIORITY } from '../lib/fields';
+import { BUSINESS_TYPES, FIELD, FIELDS, questionOrder, SOURCE_GUIDE } from '../lib/fields';
 import { money, pct } from '../lib/format';
 import type { Candidate } from '../lib/parse/common';
 import { detectKind, detectRoles, KIND_LABELS, parseTable, ROLE_LABELS, tableAsText, tableCandidates, tableFromJson, type Role, type Table, type TableKind } from '../lib/parse/csv';
 import { extractFromText } from '../lib/parse/text';
-import { AD_FORMATS, type AdFormat, type FieldKey, type NamedAmount, type Source } from '../lib/types';
+import { AD_FORMATS, type AdFormat, type BusinessType, type FieldKey, type NamedAmount, type Source } from '../lib/types';
 import { nav, useStore } from '../store';
 
 type Status = 'pending' | 'approved' | 'ignored';
@@ -42,7 +42,14 @@ function ReviewQueue({ items, setItems }: { items: Item[]; setItems: (f: (x: Ite
   return (
     <section className="mt-10" aria-label="Detected values">
       <SectionTitle eyebrow={`${pending.length} waiting · ${approved.length} approved`} title="Review detected values" />
-      <p className="-mt-2 mb-4 text-sm text-mute">Nothing is applied until you approve it. Check each number against your dashboard.</p>
+      <div className="-mt-2 mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-mute">Nothing is applied until you approve it. Check each number against your dashboard.</p>
+        {items.some((i) => i.status === 'pending' && i.confidence === 'high') && (
+          <button type="button" id="approve-high" onClick={() => setItems((xs) => xs.map((x) => (x.status === 'pending' && x.confidence === 'high' ? { ...x, status: 'approved' } : x)))} className="rounded-[3px] border border-ink px-3 py-1.5 text-xs font-semibold">
+            Approve all high-confidence ({items.filter((i) => i.status === 'pending' && i.confidence === 'high').length})
+          </button>
+        )}
+      </div>
       <ul className="divide-y divide-line border-y border-line">
         {items.map((c) => {
           const isField = c.kind === 'field';
@@ -434,7 +441,7 @@ function QuestionsTab() {
   const input = useStore((s) => s.input);
   const setValue = useStore((s) => s.setValue);
   const queue = useMemo(() => {
-    const list = PRIORITY[input.businessType].filter((k) => input.values[k] == null);
+    const list = questionOrder(input.businessType, useStore.getState().profile.adPlatforms).filter((k) => input.values[k] == null);
     return list.slice(0, 8);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input.businessType]);
@@ -544,7 +551,17 @@ function ManualTab() {
     );
   return (
     <div className="space-y-10">
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-3">
+        <label className="block">
+          <span className="text-sm text-mute">Business type</span>
+          <select id="manual-type" value={input.businessType} onChange={(e) => useStore.getState().setBusinessType(e.target.value as BusinessType)} className="mt-1 block w-full rounded-[3px] border border-line bg-surface px-3 py-2 text-sm">
+            {BUSINESS_TYPES.map((b) => (
+              <option key={b.key} value={b.key}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="block">
           <span className="text-sm text-mute">Month</span>
           <input id="manual-month" type="month" value={input.month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="mt-1 block w-full rounded-[3px] border border-line bg-surface px-3 py-2 font-mono text-sm" />
@@ -599,6 +616,42 @@ function ManualTab() {
   );
 }
 
+/** What to bring from the sources picked in onboarding, ticked off as numbers arrive. */
+function SourceChecklist() {
+  const profile = useStore((s) => s.profile);
+  const values = useStore((s) => s.input.values);
+  const picked = [...profile.moneySources, ...profile.adPlatforms].filter((s) => SOURCE_GUIDE[s]);
+  if (!picked.length) return null;
+  const done = picked.filter((s) => values[SOURCE_GUIDE[s].field] != null).length;
+  return (
+    <section className="mt-6 border border-line bg-surface p-4" aria-label="Your sources" data-testid="source-checklist">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-lg font-bold">Your sources</h2>
+        <span className="num text-xs text-mute">
+          {done} of {picked.length} in
+        </span>
+      </div>
+      <ul className="mt-3 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+        {picked.map((s) => {
+          const g = SOURCE_GUIDE[s];
+          const ok = values[g.field] != null;
+          return (
+            <li key={s} className="grid grid-cols-[1.25rem_1fr] gap-2 text-sm">
+              <span className={`mt-0.5 flex h-4 w-4 items-center justify-center border border-ink text-[10px] ${ok ? 'bg-inv text-invink' : ''}`} aria-hidden>
+                {ok ? '✓' : ''}
+              </span>
+              <span className={ok ? 'text-mute' : ''}>
+                <span className="font-semibold">{s}</span>: {g.bring} <span className="text-mute">→ {g.gives}</span>
+                <span className="sr-only">{ok ? ' (received)' : ' (not yet)'}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 // ---------------------------------------------------------------- page
 
 export default function Import() {
@@ -640,6 +693,8 @@ export default function Import() {
           </Button>
         </div>
       )}
+
+      {!input.isSample && <SourceChecklist />}
 
       <div className="no-scrollbar mt-8 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
         {TABS.map((t) => (

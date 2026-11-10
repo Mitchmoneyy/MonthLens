@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { reducedMotion } from './ui';
 
-export const photo = (name: string) => `./photos/${name}.jpg`;
+/** `small` is a 640px version for thumbnails, cards and the strip. */
+export const photo = (name: string, small = false) => `./photos/${small ? 'sm/' : ''}${name}.jpg`;
 
 export interface StripItem {
   src: string;
@@ -14,27 +15,47 @@ export function PhotoStrip({ items, height = 220, speed = 28 }: { items: StripIt
   const state = useRef({ x: 0, hover: false, drag: false, startX: 0, startOffset: 0, moved: 0 });
 
   useEffect(() => {
+    const el = track.current;
+    if (!el) return;
     let raf = 0;
-    let last = performance.now();
+    let last = 0;
+    let half = el.scrollWidth / 2;
+    let visible = true;
     const v = reducedMotion() ? 0 : speed;
     const loop = (t: number) => {
       const s = state.current;
-      const el = track.current;
-      const dt = Math.min(64, t - last) / 1000;
+      const dt = last ? Math.min(64, t - last) / 1000 : 0;
       last = t;
-      if (el) {
-        const half = el.scrollWidth / 2;
-        if (!s.hover && !s.drag) s.x -= v * dt;
-        if (half > 0) {
-          if (s.x <= -half) s.x += half;
-          if (s.x > 0) s.x -= half;
-        }
-        el.style.transform = `translate3d(${s.x}px,0,0)`;
+      if (!s.hover && !s.drag) s.x -= v * dt;
+      if (half > 0) {
+        if (s.x <= -half) s.x += half;
+        if (s.x > 0) s.x -= half;
       }
+      el.style.transform = `translate3d(${s.x}px,0,0)`;
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const sync = () => {
+      const run = visible && document.visibilityState === 'visible';
+      if (run && !raf) {
+        last = 0;
+        raf = requestAnimationFrame(loop);
+      } else if (!run && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+    const ro = 'ResizeObserver' in window ? new ResizeObserver(() => (half = el.scrollWidth / 2)) : null;
+    ro?.observe(el);
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver((e) => ((visible = e[0].isIntersecting), sync())) : null;
+    io?.observe(el.parentElement ?? el);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+      io?.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+    };
   }, [speed]);
 
   const s = state.current;
@@ -68,7 +89,7 @@ export function PhotoStrip({ items, height = 220, speed = 28 }: { items: StripIt
       <div ref={track} className="flex w-max gap-3 will-change-transform" style={{ height }}>
         {doubled.map((it, i) => (
           <figure key={i} className="relative h-full shrink-0 overflow-hidden" style={{ width: height * 1.35 }} aria-hidden={i >= items.length}>
-            <img src={it.src} alt={i < items.length ? it.caption : ''} draggable={false} loading="lazy" className="photo h-full w-full object-cover" />
+            <img src={it.src} alt={i < items.length ? it.caption : ''} draggable={false} loading="lazy" decoding="async" className="photo h-full w-full object-cover" />
             <figcaption className="absolute bottom-0 left-0 bg-inv px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-invink">{it.caption}</figcaption>
           </figure>
         ))}

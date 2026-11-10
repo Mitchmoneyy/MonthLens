@@ -52,6 +52,36 @@ export const PRIORITY: Record<BusinessType, FieldKey[]> = {
   creator: ['grossRevenue', 'contractors', 'otherExpenses', 'software', 'newCustomers', 'refunds', 'oneOffExpenses', 'cashEnd'],
 };
 
+const AD_FIELD: Record<string, FieldKey> = { Meta: 'adSpendMeta', Google: 'adSpendGoogle', TikTok: 'adSpendTiktok' };
+
+/**
+ * Guided-question order for this person: their business type's priorities, with the ad-spend
+ * questions matched to the ad platforms they said they use (none if they don't run ads).
+ */
+export function questionOrder(type: BusinessType, adPlatforms: string[]): FieldKey[] {
+  const chosen = adPlatforms.filter((p) => p !== 'None yet');
+  const adFields = [...new Set(chosen.map((p) => AD_FIELD[p] ?? 'adSpendOther'))] as FieldKey[];
+  const base = PRIORITY[type].filter((k) => !k.startsWith('adSpend'));
+  const at = PRIORITY[type].findIndex((k) => k.startsWith('adSpend'));
+  const pos = at >= 0 ? Math.min(at, base.length) : Math.min(2, base.length);
+  return [...base.slice(0, pos), ...adFields, ...base.slice(pos)];
+}
+
+/** What to bring from each source picked in onboarding, and which input shows it has arrived. */
+export const SOURCE_GUIDE: Record<string, { bring: string; gives: string; field: FieldKey }> = {
+  Stripe: { bring: 'Payments export (CSV) or a dashboard screenshot', gives: 'revenue, refunds, fees', field: 'grossRevenue' },
+  Shopify: { bring: 'Orders export (CSV) or an Analytics screenshot', gives: 'revenue, orders, products', field: 'orders' },
+  PayPal: { bring: 'Activity report (CSV)', gives: 'revenue, refunds, fees', field: 'paymentFees' },
+  Bank: { bring: 'Statement export (CSV or PDF)', gives: 'tools, contractors, cash balance', field: 'cashEnd' },
+  Meta: { bring: 'Ads Manager export with ad names, or a screenshot', gives: 'spend and results by format', field: 'adSpendMeta' },
+  Google: { bring: 'Google Ads campaign report (CSV)', gives: 'spend and results by format', field: 'adSpendGoogle' },
+  TikTok: { bring: 'TikTok Ads Manager export', gives: 'spend and results by format', field: 'adSpendTiktok' },
+  Pinterest: { bring: 'Ads export or screenshot', gives: 'spend and results', field: 'adSpendOther' },
+  Snapchat: { bring: 'Ads export or screenshot', gives: 'spend and results', field: 'adSpendOther' },
+  LinkedIn: { bring: 'Campaign Manager export or screenshot', gives: 'spend and results', field: 'adSpendOther' },
+  Microsoft: { bring: 'Microsoft Advertising report (CSV)', gives: 'spend and results', field: 'adSpendOther' },
+};
+
 export const BUSINESS_TYPES: { key: BusinessType; label: string; blurb: string; photo: string }[] = [
   { key: 'ecommerce', label: 'E-commerce', blurb: 'Physical products, Shopify or similar', photo: 'flatlay' },
   { key: 'saas', label: 'SaaS / Subscription', blurb: 'Recurring software or memberships', photo: 'code' },

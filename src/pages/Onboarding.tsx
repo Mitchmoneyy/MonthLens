@@ -110,7 +110,7 @@ export default function Onboarding() {
                   className={`group overflow-hidden rounded-[3px] border-2 bg-surface text-left transition ${type === b.key ? 'border-ink' : 'border-transparent hover:border-line'}`}
                 >
                   <div className="aspect-[4/5] overflow-hidden">
-                    <img src={photo(b.photo)} alt="" className="photo h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <img src={photo(b.photo, true)} alt="" decoding="async" className="photo h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                   </div>
                   <div className="p-3">
                     <div className="font-semibold leading-tight">{b.label}</div>

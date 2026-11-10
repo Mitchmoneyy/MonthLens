@@ -277,6 +277,39 @@ try {
     await appCtx.close();
   }
 
+  // smoothness: a new tab opens at its top; onboarding answers shape the Import page
+  {
+    const c = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const pg = await c.newPage();
+    await pg.goto(BASE + '#start');
+    await pg.click('#type-ecommerce');
+    await pg.waitForTimeout(300);
+    await pg.click('#src-Stripe'); // defaults are Stripe + Shopify: leave only Shopify
+    await pg.click('#onb-next');
+    await pg.click('#ads-Meta'); // defaults are Meta + Google: leave only Google
+    await pg.click('#onb-next');
+    await pg.click('#onb-finish');
+    await pg.waitForURL(/#overview/);
+    await pg.evaluate(() => scrollTo(0, 1500));
+    await pg.click('nav a[href="#ads"]');
+    await pg.waitForTimeout(400);
+    ok('Switching tabs starts at the top', (await pg.evaluate(() => scrollY)) === 0);
+    await pg.goto(BASE + '#import');
+    await pg.getByRole('button', { name: 'Start a blank month' }).click();
+    const list = await pg.getByTestId('source-checklist').innerText();
+    ok('Import lists the sources picked in onboarding', /Shopify/.test(list) && /Google/.test(list) && !/Stripe/.test(list) && !/Meta/.test(list) && /0 of 2/.test(list), list.replace(/\s+/g, ' ').slice(0, 90));
+    await pg.click('#tab-questions');
+    const asked = [];
+    for (let i = 0; i < 8; i++) {
+      const h = pg.locator('[role="tabpanel"] h3');
+      if (!(await h.count())) break;
+      asked.push(await h.innerText());
+      await pg.getByText('Skip — leave as', { exact: false }).click();
+    }
+    ok('Questions ask about Google ads, not Meta', asked.some((q) => /Google Ads/.test(q)) && !asked.some((q) => /Meta/.test(q)), `${asked.length} questions`);
+    await c.close();
+  }
+
   // privacy page, and no requests to other servers (fonts are bundled)
   {
     const c = await browser.newContext();

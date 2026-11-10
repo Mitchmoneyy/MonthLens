@@ -44,6 +44,7 @@ interface State {
   setValue: (k: FieldKey, v: number | null, src?: Source) => void;
   setGoal: (g: number | null) => void;
   setMonth: (m: string) => void;
+  setBusinessType: (t: BusinessType) => void;
   setAds: (ads: AdRow[]) => void;
   setProducts: (p: NamedAmount[]) => void;
   applyCandidates: (c: Candidate[]) => void;
@@ -62,9 +63,32 @@ interface State {
   setThumb: (format: string, dataUrl: string | null) => void;
 }
 
-/** localStorage that never throws (private windows, blocked storage). */
+/**
+ * localStorage that never throws (private windows, blocked storage) and doesn't write on every
+ * slider tick: writes are batched a moment later and flushed when the page is hidden or closed.
+ */
+const pending = new Map<string, string>();
+let flushTimer: ReturnType<typeof setTimeout> | undefined;
+function flushStorage() {
+  clearTimeout(flushTimer);
+  flushTimer = undefined;
+  for (const [k, v] of pending) {
+    try {
+      localStorage.setItem(k, v);
+    } catch {
+      /* storage full or blocked: keep working in memory */
+    }
+  }
+  pending.clear();
+}
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('pagehide', flushStorage);
+  window.addEventListener('beforeunload', flushStorage);
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flushStorage());
+}
 const safeStorage = {
   getItem: (k: string) => {
+    if (pending.has(k)) return pending.get(k) as string;
     try {
       return localStorage.getItem(k);
     } catch {
@@ -72,13 +96,11 @@ const safeStorage = {
     }
   },
   setItem: (k: string, v: string) => {
-    try {
-      localStorage.setItem(k, v);
-    } catch {
-      /* storage full or blocked: keep working in memory */
-    }
+    pending.set(k, v);
+    if (!flushTimer) flushTimer = setTimeout(flushStorage, 250);
   },
   removeItem: (k: string) => {
+    pending.delete(k);
     try {
       localStorage.removeItem(k);
     } catch {
@@ -130,6 +152,7 @@ export const useStore = create<State>()(
         if (g !== null) set({ profile: { ...get().profile, goal: g } });
       },
       setMonth: (m) => set({ input: { ...get().input, month: m } }),
+      setBusinessType: (t) => set({ profile: { ...get().profile, businessType: t }, input: { ...get().input, businessType: t } }),
       setAds: (ads) => set({ input: { ...get().input, ads } }),
       setProducts: (products) => set({ input: { ...get().input, products } }),
       applyCandidates: (cands) => {
