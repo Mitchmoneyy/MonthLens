@@ -310,6 +310,59 @@ try {
     await c.close();
   }
 
+  // month picker opens months; full backup and restore; several files in one drop
+  {
+    const c = await browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true });
+    const pg = await c.newPage();
+    pg.on('pageerror', (e) => errors.push(e.message));
+    await pg.goto(BASE + '#import');
+    await pg.getByRole('button', { name: 'Start a blank month' }).click();
+    await pg.click('#tab-manual');
+    await pg.fill('#m-grossRevenue', '5000');
+    await pg.fill('#m-cogs', '1000');
+    await pg.waitForTimeout(1400);
+    const first = await pg.inputValue('#month-picker');
+    const p0 = await pg.getByTestId('sticky-profit').innerText();
+    await pg.fill('#month-picker', '2026-01');
+    await pg.waitForTimeout(700);
+    const p1 = await pg.getByTestId('sticky-profit').innerText();
+    await pg.fill('#month-picker', first);
+    await pg.waitForTimeout(900);
+    const p2 = await pg.getByTestId('sticky-profit').innerText();
+    ok('Month picker opens a different month and comes back to the saved one', /\$4,000/.test(p0) && /Not provided/.test(p1) && /\$4,000/.test(p2), `${p0} → ${p1} → ${p2}`.replace(/\n/g, ' '));
+
+    await pg.goto(BASE + '#history');
+    const [bk] = await Promise.all([pg.waitForEvent('download'), pg.click('#backup-download')]);
+    const bkPath = path.join(root, 'e2e-fixtures/backup.json');
+    await bk.saveAs(bkPath);
+    const months = await pg.getByTestId('snapshots').locator('tbody tr').count();
+    await pg.click('#reset-all');
+    await pg.click('#confirm-reset');
+    await pg.goto(BASE + '#history');
+    await pg.locator('#backup-restore').waitFor({ state: 'attached' });
+    const wiped = await pg.getByTestId('snapshots').count();
+    await pg.setInputFiles('#backup-restore', bkPath);
+    await pg.click('#backup-restore-confirm');
+    await pg.getByTestId('snapshots').waitFor();
+    const restored = await pg.getByTestId('snapshots').locator('tbody tr').count();
+    ok('Backup restores everything after a full wipe', months >= 1 && wiped === 0 && restored === months, `${months} months → wiped → ${restored}`);
+    await pg.setInputFiles('#backup-restore', path.join(root, 'e2e-fixtures/stripe-payments.csv'));
+    await pg.waitForTimeout(400);
+    ok('A wrong file is refused and nothing changes', (await pg.locator('#backup-restore-confirm').count()) === 0 && (await pg.getByTestId('snapshots').locator('tbody tr').count()) === restored);
+
+    await pg.goto(BASE + '#import');
+    await pg.click('#tab-file');
+    await pg.setInputFiles('#file-input', [path.join(root, 'e2e-fixtures/stripe-payments.csv'), path.join(root, 'e2e-fixtures/meta-ads.tsv')]);
+    await pg.locator('text=File 1 of 2').waitFor();
+    await pg.click('#send-to-review');
+    await pg.locator('text=File 2 of 2').waitFor();
+    await pg.click('#send-to-review');
+    await pg.waitForTimeout(300);
+    const batches = await pg.getByTestId('candidate').allInnerTexts();
+    ok('Several files in one drop are each previewed and reviewed', batches.some((t) => /stripe-payments/.test(t)) && batches.some((t) => /meta-ads/.test(t)), `${batches.length} values queued`);
+    await c.close();
+  }
+
   // privacy page, and no requests to other servers (fonts are bundled)
   {
     const c = await browser.newContext();

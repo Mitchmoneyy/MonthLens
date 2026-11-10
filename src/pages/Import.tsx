@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { go, useReviewData } from '../App';
+import { go, monthMessage, useReviewData } from '../App';
 import { Button, NumberField, Pill, SectionTitle, Slider, useToast } from '../components/ui';
 import { computeReview } from '../lib/calc';
 import { BUSINESS_TYPES, FIELD, FIELDS, questionOrder, SOURCE_GUIDE } from '../lib/fields';
@@ -200,7 +200,7 @@ function ScreenshotTab({ addItems }: { addItems: (c: Candidate[], batch: string)
           const { candidates, label } = extractFromText(text, 'screenshot');
           setShots((s) => s.map((x) => (x.id === id ? { ...x, text, label, progress: 1, status: `${candidates.length} values found` } : x)));
           addItems(candidates, `${label} · screenshot`);
-        } catch (e: any) {
+        } catch {
           setShots((s) => s.map((x) => (x.id === id ? { ...x, error: 'Could not read this image here. Try a sharper screenshot, or paste the dashboard text instead.' } : x)));
         }
       }
@@ -261,14 +261,29 @@ interface Loaded {
   source: Source;
 }
 
-function FileTab({ addItems }: { addItems: (c: Candidate[], batch: string) => void }) {
+function FileTab({ addItems }: { addItems: (c: Candidate[], batch: string, scroll?: boolean) => void }) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const onFiles = async (files: File[]) => {
-    const f = files[0];
-    if (!f) return;
+  const [waiting, setWaiting] = useState<File[]>([]);
+  const [position, setPosition] = useState({ n: 0, of: 0 });
+  /** Several files can be dropped at once; each gets its own preview, in order. */
+  const onFiles = (files: File[]) => {
+    if (!files.length) return;
+    setWaiting(files.slice(1));
+    setPosition({ n: 1, of: files.length });
+    void loadFile(files[0]);
+  };
+  const nextFile = () => {
+    setLoaded(null);
+    if (!waiting.length) return setPosition({ n: 0, of: 0 });
+    const [f, ...rest] = waiting;
+    setWaiting(rest);
+    setPosition((p) => ({ ...p, n: p.n + 1 }));
+    void loadFile(f);
+  };
+  const loadFile = async (f: File) => {
     setErr(null);
     setBusy(true);
     try {
@@ -388,17 +403,25 @@ function FileTab({ addItems }: { addItems: (c: Candidate[], batch: string) => vo
           ) : (
             <pre className="max-h-48 overflow-auto whitespace-pre-wrap p-4 font-mono text-xs">{(loaded.text ?? '').slice(0, 3000)}</pre>
           )}
-          <div className="flex justify-end border-t border-line p-3">
-            <Button
-              id="send-to-review"
-              disabled={!result.candidates.length}
-              onClick={() => {
-                addItems(result.candidates, `${loaded.name}`);
-                setLoaded(null);
-              }}
-            >
-              Review {result.candidates.length} values
-            </Button>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line p-3">
+            <span className="text-xs text-mute">{position.of > 1 ? `File ${position.n} of ${position.of}` : ''}</span>
+            <div className="flex gap-2">
+              {(position.of > 1 || !result.candidates.length) && (
+                <Button variant="ghost" id="skip-file" onClick={nextFile}>
+                  {waiting.length ? 'Skip this file' : 'Close'}
+                </Button>
+              )}
+              <Button
+                id="send-to-review"
+                disabled={!result.candidates.length}
+                onClick={() => {
+                  addItems(result.candidates, `${loaded.name}`, waiting.length === 0);
+                  nextFile();
+                }}
+              >
+                Review {result.candidates.length} values{waiting.length ? ' · next file' : ''}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -535,7 +558,8 @@ function ManualTab() {
   const input = useStore((s) => s.input);
   const setValue = useStore((s) => s.setValue);
   const setGoal = useStore((s) => s.setGoal);
-  const setMonth = useStore((s) => s.setMonth);
+  const openMonth = useStore((s) => s.openMonth);
+  const toast = useToast();
   const setProducts = useStore((s) => s.setProducts);
   const setChannels = useStore((s) => s.setChannels);
   const groups = [...new Set(FIELDS.map((f) => f.group))];
@@ -564,7 +588,7 @@ function ManualTab() {
         </label>
         <label className="block">
           <span className="text-sm text-mute">Month</span>
-          <input id="manual-month" type="month" value={input.month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="mt-1 block w-full rounded-[3px] border border-line bg-surface px-3 py-2 font-mono text-sm" />
+          <input id="manual-month" type="month" value={input.month} onChange={(e) => e.target.value && toast(monthMessage(e.target.value, openMonth(e.target.value)))} className="mt-1 block w-full rounded-[3px] border border-line bg-surface px-3 py-2 font-mono text-sm" />
         </label>
         <div>
           <span className="text-sm text-mute">Monthly profit goal</span>
@@ -662,10 +686,10 @@ export default function Import() {
   useEffect(() => {
     nav.importTab = null;
   }, []);
-  const addItems = useCallback((c: Candidate[], batch: string) => {
+  const addItems = useCallback((c: Candidate[], batch: string, scroll = true) => {
     if (!c.length) return;
     setItems((xs) => [...xs, ...c.map((x) => ({ ...x, status: 'pending' as Status, batch }))]);
-    setTimeout(() => queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    if (scroll) setTimeout(() => queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   }, []);
   const filled = FIELDS.filter((f) => input.values[f.key] != null).length;
 

@@ -11,7 +11,8 @@
     "ios:sync": "npm run build && cap sync ios",
     "ios:open": "cap open ios",
     "test:e2e": "node scripts/e2e.mjs",
-    "test:accounts": "node scripts/e2e-account.mjs"
+    "test:accounts": "node scripts/e2e-account.mjs",
+    "lint": "eslint src"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",
@@ -24,10 +25,10 @@
     "@fontsource-variable/bodoni-moda": "^5.3.0",
     "@fontsource-variable/martian-mono": "^5.3.0",
     "@fontsource-variable/schibsted-grotesk": "^5.3.0",
-    "@supabase/supabase-js": "^2.45.4",
-    "jspdf": "^2.5.2",
+    "@supabase/supabase-js": "^2.118.0",
+    "jspdf": "^4.2.1",
     "papaparse": "^5.4.1",
-    "pdfjs-dist": "^4.4.168",
+    "pdfjs-dist": "^4.10.38",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tesseract.js": "^5.1.1",
@@ -40,9 +41,12 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.13.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",
+    "typescript-eslint": "^8.11.0",
     "vite": "^5.4.10",
     "vite-plugin-pwa": "^0.20.5",
     "vitest": "^2.1.4"

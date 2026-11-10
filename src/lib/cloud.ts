@@ -113,9 +113,3 @@ export async function deleteAccount() {
   if (error) throw error;
   await sb.auth.signOut({ scope: 'local' }).catch(() => {});
 }
-
-export async function deleteRemote(userId: string) {
-  const sb = await client();
-  const { error } = await sb.from('workspaces').delete().eq('user_id', userId);
-  if (error) throw error;
-}

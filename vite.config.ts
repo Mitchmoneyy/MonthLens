@@ -49,7 +49,9 @@ export default defineConfig({
       workbox: {
         // the app shell, code and photos work offline from the first visit
         globPatterns: ['**/*.{js,mjs,css,html,png,jpg,woff2,webmanifest}'],
-        globIgnores: ['ocr/**', 'artifact*.html'],
+        // Not pre-downloaded: the OCR engine (fetched on first scan), font subsets for scripts the
+        // interface doesn't use, and jsPDF's HTML-rendering helpers, which the report never calls.
+        globIgnores: ['ocr/**', 'artifact*.html', '**/*cyrillic*', '**/*-math-*', '**/*-symbols-*', '**/html2canvas*', '**/purify*', '**/index.es-*'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,

@@ -75,6 +75,15 @@ export function go(route: Route) {
   window.scrollTo({ top: 0 });
 }
 
+/** What to tell someone after they pick a month. */
+export function monthMessage(m: string, r: { result: string; autoSaved: boolean }): string {
+  const name = monthName(m);
+  if (r.result === 'opened') return `Opened ${name}${r.autoSaved ? '. The month you were on was saved.' : ''}`;
+  if (r.result === 'started') return `Started ${name}${r.autoSaved ? '. The month you were on was saved to History.' : ''}`;
+  if (r.result === 'relabelled') return `Showing the sample as ${name}`;
+  return name;
+}
+
 /** Everything derived from the current month. All pages read from here. */
 function deriveReview(input: MonthInput, snapshots: Snapshot[]) {
   const prev = previousInput(input, snapshots);
@@ -160,7 +169,8 @@ export function ThemeToggle() {
 
 function SummaryBar({ route }: { route: Route }) {
   const { review, input } = useReviewData();
-  const setMonth = useStore((s) => s.setMonth);
+  const openMonth = useStore((s) => s.openMonth);
+  const toast = useToast();
   const p = review.m.netProfit.value;
   return (
     <header className="sticky z-50 bg-inv text-invink" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
@@ -170,7 +180,7 @@ function SummaryBar({ route }: { route: Route }) {
         </a>
         <label className="hidden items-center gap-2 md:flex">
           <span className="sr-only">Month</span>
-          <input id="month-picker" type="month" value={input.month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="rounded-md border border-current/25 bg-transparent px-2 py-1 font-mono text-xs" style={{ colorScheme: 'inherit' }} />
+          <input id="month-picker" type="month" value={input.month} onChange={(e) => e.target.value && toast(monthMessage(e.target.value, openMonth(e.target.value)))} className="rounded-md border border-current/25 bg-transparent px-2 py-1 font-mono text-xs" style={{ colorScheme: 'inherit' }} />
         </label>
         <div className="ml-auto flex min-w-0 items-baseline gap-2 sm:gap-3" data-testid="sticky-profit">
           <span className="font-mono text-[10px] uppercase tracking-widest opacity-60">Profit</span>

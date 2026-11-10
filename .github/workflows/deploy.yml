@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run lint
       - run: npm test
       - run: npm run build
         env:
@@ -31,6 +33,14 @@ jobs:
           # Leave unset and the app runs without accounts.
           VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+      # Browser tests against the built site: the acceptance tests, imports with real OCR,
+      # offline mode, and the account flow against a stand-in server.
+      - name: Browser tests
+        run: |
+          npm i --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+          node scripts/e2e.mjs
+          node scripts/e2e-account.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

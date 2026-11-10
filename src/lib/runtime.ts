@@ -5,7 +5,7 @@ declare global {
   }
 }
 
-async function use(name: string): Promise<any | null> {
+async function capability(name: string): Promise<any | null> {
   try {
     if (!window.claude?.use) return null;
     return await window.claude.use(name);
@@ -19,7 +19,7 @@ export type SaveResult = 'saved' | 'declined' | 'failed';
 export async function saveFile(filename: string, data: Blob | string, mime: string): Promise<SaveResult> {
   const { isNative, shareFile } = await import('../native');
   if (isNative()) return shareFile(filename, data);
-  const downloads = await use('downloads');
+  const downloads = await capability("downloads");
   if (downloads) {
     try {
       await downloads.save({ filename, data });
@@ -48,7 +48,7 @@ export async function saveFile(filename: string, data: Blob | string, mime: stri
 let samplePromise: Promise<any | null> | null = null;
 /** Claude, when the page runs inside claude.ai. Null elsewhere. */
 export function getSampler(): Promise<any | null> {
-  if (!samplePromise) samplePromise = use('sample');
+  if (!samplePromise) samplePromise = capability("sample");
   return samplePromise;
 }
 

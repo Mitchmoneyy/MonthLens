@@ -36,11 +36,37 @@ export function mergeSnapshots(a: Snapshot[], b: Snapshot[]): Snapshot[] {
   return [...map.values()].sort((x, y) => x.month.localeCompare(y.month));
 }
 
-/** Merge local and remote. Returns the merged data and which side's working state won. */
-export function mergeData(local: SyncedData, remote: SyncedData | null): { data: SyncedData; winner: 'local' | 'remote' | 'merged' } {
+type InputLike = { month?: string; isSample?: boolean; businessType?: string; values?: Record<string, unknown>; ads?: unknown[] };
+
+/**
+ * The working month of the side that lost "newest wins", as a saved month. Null when there is
+ * nothing worth keeping: a sample, an empty month, or the same numbers the winner has.
+ */
+function conflictCopy(loser: SyncedData, winner: SyncedData): Snapshot | null {
+  const li = loser.input as InputLike | null;
+  if (!li || li.isSample || !li.month) return null;
+  const hasData = Object.values(li.values ?? {}).some((v) => v != null) || (li.ads?.length ?? 0) > 0;
+  if (!hasData || JSON.stringify(li) === JSON.stringify(winner.input)) return null;
+  return { id: `conflict-${loser.changedAt}`, month: li.month, savedAt: new Date(loser.changedAt || 0).toISOString(), label: 'From your other device', input: li as Snapshot['input'] };
+}
+
+/**
+ * Merge local and remote. Returns the merged data and which side's working state won.
+ *
+ * `base` is the change-time both sides agreed on at this device's last sync (undefined on its
+ * first sync). A real conflict is when BOTH sides changed after that point; then the losing
+ * side's working month is kept as a saved month. A device that is merely out of date loses nothing.
+ */
+export function mergeData(local: SyncedData, remote: SyncedData | null, base?: number): { data: SyncedData; winner: 'local' | 'remote' | 'merged' } {
   if (!remote) return { data: local, winner: 'local' };
   const newer = remote.changedAt > local.changedAt ? remote : local;
-  const snapshots = mergeSnapshots(local.snapshots ?? [], remote.snapshots ?? []);
+  const older = newer === remote ? local : remote;
+  const bothChanged = base === undefined || (local.changedAt > base && remote.changedAt > base);
+  const copy = bothChanged ? conflictCopy(older, newer) : null;
+  const saved = mergeSnapshots(local.snapshots ?? [], remote.snapshots ?? []);
+  const key = (s: Snapshot) => `${s.input.businessType}|${s.month}|${s.input.isSample ? 's' : 'r'}`;
+  // an explicitly saved month always beats an automatic copy of the same month
+  const snapshots = copy && !saved.some((s) => key(s) === key(copy)) ? mergeSnapshots(saved, [copy]) : saved;
   const sameSnaps = snapshots.length === (newer.snapshots ?? []).length;
   return {
     data: { ...newer, snapshots, changedAt: Math.max(local.changedAt, remote.changedAt) },

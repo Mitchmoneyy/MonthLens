@@ -4,7 +4,9 @@ import { SAMPLES } from '../samples';
 import type { Snapshot } from '../types';
 
 const snap = (month: string, savedAt: string, label = 'x', isSample = false): Snapshot => ({ id: month + savedAt, month, savedAt, label, input: { ...SAMPLES.ecommerce, month, isSample } });
-const data = (over: Partial<SyncedData>): SyncedData => ({ profile: { onboarded: true }, input: { ...SAMPLES.ecommerce, isSample: false }, snapshots: [], planDone: {}, scenarioA: null, scenarioB: null, thumbs: {}, changedAt: 0, ...over });
+const data0 = (over: Partial<SyncedData>): SyncedData => ({ profile: { onboarded: true }, input: { ...SAMPLES.ecommerce, isSample: false }, snapshots: [], planDone: {}, scenarioA: null, scenarioB: null, thumbs: {}, changedAt: 0, ...over });
+
+const data = data0;
 
 describe('merge rules', () => {
   it('keeps every saved month from both sides; newer save wins a clash', () => {
@@ -20,6 +22,20 @@ describe('merge rules', () => {
     expect(d.snapshots).toHaveLength(2);
     expect(winner).toBe('merged');
     expect(d.changedAt).toBe(200);
+  });
+  it('two devices edited since the last sync: the losing working month is kept as a saved month', () => {
+    const mine = { ...SAMPLES.ecommerce, isSample: false, month: '2026-10', values: { grossRevenue: 111 } };
+    const theirs = { ...SAMPLES.ecommerce, isSample: false, month: '2026-10', values: { grossRevenue: 999 } };
+    const { data } = mergeData(data0({ changedAt: 150, input: mine }), data0({ changedAt: 200, input: theirs }), 100);
+    expect((data.input as any).values.grossRevenue).toBe(999);
+    const kept = data.snapshots.find((s) => s.label === 'From your other device');
+    expect(kept?.input.values.grossRevenue).toBe(111);
+  });
+  it('a device that is only out of date creates no copy', () => {
+    const stale = { ...SAMPLES.ecommerce, isSample: false, values: { grossRevenue: 111 } };
+    const fresh = { ...SAMPLES.ecommerce, isSample: false, values: { grossRevenue: 999 } };
+    const { data } = mergeData(data0({ changedAt: 100, input: stale }), data0({ changedAt: 200, input: fresh }), 100);
+    expect(data.snapshots).toHaveLength(0);
   });
   it('no remote: local stands', () => expect(mergeData(data({ changedAt: 5 }), null).winner).toBe('local'));
   it('a fresh browser is pristine; one with real numbers is not', () => {
@@ -40,7 +56,6 @@ vi.mock('../cloud', () => ({
   }),
   loadRemote: async (id: string) => server.get(id) ?? null,
   saveRemote: async (id: string, d: SyncedData) => void server.set(id, JSON.parse(JSON.stringify(d))),
-  deleteRemote: async (id: string) => void server.delete(id),
 }));
 
 describe('sync engine', () => {

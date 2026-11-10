@@ -34,6 +34,8 @@ interface State {
   thumbs: Partial<Record<string, string>>;
   /** last time synced data changed on this device (ms) */
   changedAt: number;
+  /** change-time this device and the account agreed on at the last sync; undefined before the first */
+  syncBase?: number;
   creators: Creator[];
   saveCreator: (c: Creator) => void;
   removeCreator: (id: string) => void;
@@ -43,7 +45,9 @@ interface State {
   startReal: () => void;
   setValue: (k: FieldKey, v: number | null, src?: Source) => void;
   setGoal: (g: number | null) => void;
-  setMonth: (m: string) => void;
+  /** Open another month: load it if saved, otherwise start it blank. The month being left is auto-saved. */
+  openMonth: (m: string) => { result: 'same' | 'relabelled' | 'opened' | 'started'; autoSaved: boolean };
+  restoreBackup: (d: Partial<State>) => void;
   setBusinessType: (t: BusinessType) => void;
   setAds: (ads: AdRow[]) => void;
   setProducts: (p: NamedAmount[]) => void;
@@ -151,7 +155,25 @@ export const useStore = create<State>()(
         set({ input: { ...get().input, goal: g } });
         if (g !== null) set({ profile: { ...get().profile, goal: g } });
       },
-      setMonth: (m) => set({ input: { ...get().input, month: m } }),
+      openMonth: (m) => {
+        const cur = get().input;
+        if (m === cur.month) return { result: 'same', autoSaved: false };
+        // the sample is a demo, not a record: just show it under the chosen month
+        if (cur.isSample) {
+          set({ input: { ...cur, month: m } });
+          return { result: 'relabelled', autoSaved: false };
+        }
+        const hasData = Object.values(cur.values).some((v) => v != null) || cur.ads.length > 0 || cur.products.length > 0 || cur.channels.length > 0;
+        if (hasData) get().saveSnapshot('Auto-saved');
+        const saved = get().snapshots.find((s) => s.month === m && !s.input.isSample && s.input.businessType === cur.businessType);
+        set({ input: saved ? JSON.parse(JSON.stringify(saved.input)) : blankMonth(cur.businessType, m, cur.goal), whatIf: {}, chat: [] });
+        return { result: saved ? 'opened' : 'started', autoSaved: hasData };
+      },
+      restoreBackup: (d) => {
+        const keep: any = {};
+        for (const k of ['profile', 'input', 'snapshots', 'planDone', 'scenarioA', 'scenarioB', 'thumbs', 'creators'] as const) if (d[k] !== undefined) keep[k] = d[k];
+        set({ ...keep, whatIf: {}, chat: [] });
+      },
       setBusinessType: (t) => set({ profile: { ...get().profile, businessType: t }, input: { ...get().input, businessType: t } }),
       setAds: (ads) => set({ input: { ...get().input, ads } }),
       setProducts: (products) => set({ input: { ...get().input, products } }),

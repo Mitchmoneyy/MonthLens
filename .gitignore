@@ -6,3 +6,4 @@ e2e-fixtures/*.pdf
 .DS_Store
 dist-acct/
 .env.local
+e2e-fixtures/backup.json

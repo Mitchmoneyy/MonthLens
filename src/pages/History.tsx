@@ -7,6 +7,7 @@ import { fmtUnit, money, pct } from '../lib/format';
 import { copyText, saveFile } from '../lib/runtime';
 import { decodeShare, encodeShare, shareLink } from '../lib/share';
 import { useStore } from '../store';
+import { makeBackup, parseBackup, storageUse } from '../lib/backup';
 
 const COMPARE: MetricKey[] = ['revenue', 'totalExpenses', 'netProfit', 'margin', 'adSpend', 'mer', 'cac', 'conversionRate', 'aov', 'cashEnd'];
 const LOWER_BETTER: MetricKey[] = ['totalExpenses', 'cac', 'adSpend'];
@@ -54,6 +55,15 @@ export default function History() {
   const open = useStore((s) => s.openSnapshot);
   const replace = useStore((s) => s.replaceInput);
   const resetAll = useStore((s) => s.resetAll);
+  const restoreBackup = useStore((s) => s.restoreBackup);
+  const [pendingRestore, setPendingRestore] = useState<ReturnType<typeof parseBackup> | null>(null);
+  const usage = useMemo(() => {
+    try {
+      return storageUse(JSON.stringify({ snapshots, input }) + JSON.stringify((useStore.getState() as any).thumbs ?? {}));
+    } catch {
+      return storageUse(null);
+    }
+  }, [snapshots, input]);
   const A = useStore((s) => s.scenarioA);
   const B = useStore((s) => s.scenarioB);
   const toast = useToast();
@@ -339,6 +349,72 @@ export default function History() {
               </div>
             </dl>
           </div>
+        </div>
+        <div className="mt-6 border border-line bg-surface p-5">
+          <h3 className="font-semibold">Back up everything</h3>
+          <p className="mt-1 text-sm text-mute">One file with every month, plan, scenario and creator. Keep it somewhere safe, or use it to move to another browser.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              id="backup-download"
+              variant="secondary"
+              onClick={async () => {
+                const s = useStore.getState() as any;
+                const res = await saveFile(`monthlens-backup-${new Date().toISOString().slice(0, 10)}.json`, makeBackup(s), 'application/json');
+                toast(res === 'saved' ? 'Backup ready' : res === 'declined' ? 'Download cancelled' : 'Could not save here');
+              }}
+            >
+              Download backup
+            </Button>
+            <label htmlFor="backup-restore" className="inline-flex cursor-pointer items-center rounded-[3px] border border-line px-5 py-2.5 text-sm font-semibold hover:border-ink">
+              Restore from a backup
+              <input
+                id="backup-restore"
+                type="file"
+                accept=".json,application/json"
+                className="sr-only"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (!f) return;
+                  try {
+                    setPendingRestore(parseBackup(await f.text()));
+                  } catch (x: any) {
+                    toast(x.message);
+                  }
+                }}
+              />
+            </label>
+          </div>
+          {pendingRestore && (
+            <div className="mt-4 border border-ink p-4 text-sm" role="alertdialog" aria-label="Restore backup">
+              <p className="font-semibold">Replace what’s in this browser with the backup?</p>
+              <p className="mt-1 text-mute">
+                Backup from {pendingRestore.exportedAt ? new Date(pendingRestore.exportedAt).toLocaleDateString() : 'an unknown date'}: {pendingRestore.snapshots?.length ?? 0} saved months, {pendingRestore.creators?.length ?? 0} creators. This browser currently has {snapshots.length} saved months.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  id="backup-restore-confirm"
+                  onClick={() => {
+                    restoreBackup(pendingRestore as any);
+                    setPendingRestore(null);
+                    toast('Backup restored');
+                  }}
+                  className="rounded-[3px] bg-inv px-4 py-2 font-semibold text-invink"
+                >
+                  Replace with backup
+                </button>
+                <button type="button" onClick={() => setPendingRestore(null)} className="px-3 underline">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {usage.nearlyFull && (
+            <p className="mt-3 border-l-2 border-ink pl-3 text-sm" role="status">
+              This browser’s storage for MonthLens is {Math.round(usage.share * 100)}% full. Download a backup, then remove old months or creative thumbnails you no longer need.
+            </p>
+          )}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-mute">
           <span>Everything stays in this browser. There’s no account.</span>
