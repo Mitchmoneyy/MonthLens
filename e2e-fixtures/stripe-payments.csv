@@ -1,0 +1,8 @@
+Payments export
+Generated 2026-11-01
+
+id,Created date (UTC),Amount,Amount Refunded,Currency,Fee,Status,Customer Email,Description
+ch_001,2026-10-02 10:01,1200.00,0.00,usd,35.10,Paid,ana@example.com,Annual plan
+ch_002,2026-10-03 11:20,800.00,80.00,usd,23.50,Paid,ben@example.com,Team plan
+ch_003,2026-10-05 09:10,450.00,0.00,usd,13.35,Paid,cy@example.com,Starter
+ch_004,2026-10-07 16:44,99.00,0.00,usd,3.17,Failed,dee@example.com,Starter
