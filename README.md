@@ -12,6 +12,10 @@ npm run build        # static site in dist/
 node scripts/e2e.mjs # acceptance tests in a real browser (needs Playwright + Chromium)
 ```
 
+## Live site
+
+https://mitchmoneyy.github.io/MonthLens/ — deployed by `.github/workflows/deploy.yml` on every push to `main` (unit tests must pass first).
+
 ## Where things are
 
 | Path | What |
