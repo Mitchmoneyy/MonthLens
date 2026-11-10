@@ -41,6 +41,8 @@ interface State {
   setProducts: (p: NamedAmount[]) => void;
   applyCandidates: (c: Candidate[]) => void;
   replaceInput: (i: MonthInput) => void;
+  setChannels: (c: NamedAmount[]) => void;
+  resetAll: () => void;
   saveSnapshot: (label?: string) => Snapshot;
   deleteSnapshot: (id: string) => void;
   openSnapshot: (id: string) => void;
@@ -113,10 +115,13 @@ export const useStore = create<State>()(
         if (g !== null) set({ profile: { ...get().profile, goal: g } });
       },
       setMonth: (m) => set({ input: { ...get().input, month: m } }),
-      setAds: (ads) => set({ input: { ...get().input, ads, isSample: false } }),
+      setAds: (ads) => set({ input: { ...get().input, ads } }),
       setProducts: (products) => set({ input: { ...get().input, products } }),
       applyCandidates: (cands) => {
-        const i = get().input;
+        const cur = get().input;
+        const p = get().profile;
+        // never mix imported numbers into sample numbers
+        const i = cur.isSample ? blankMonth(cur.businessType, lastMonth(), cur.goal ?? p.goal) : cur;
         const values = { ...i.values };
         const sources = { ...i.sources };
         let ads = [...i.ads];
@@ -137,6 +142,21 @@ export const useStore = create<State>()(
         set({ input: { ...i, values, sources, ads, products, isSample: false } });
       },
       replaceInput: (input) => set({ input, whatIf: {}, chat: [] }),
+      setChannels: (channels) => set({ input: { ...get().input, channels } }),
+      resetAll: () => {
+        safeStorage.removeItem('monthlens.v1');
+        set({
+          profile: { businessType: 'ecommerce', moneySources: ['Stripe', 'Shopify'], adPlatforms: ['Meta', 'Google'], goal: 15000, onboarded: false },
+          input: SAMPLES.ecommerce,
+          snapshots: [],
+          planDone: {},
+          whatIf: {},
+          scenarioA: null,
+          scenarioB: null,
+          chat: [],
+          thumbs: {},
+        });
+      },
       saveSnapshot: (label) => {
         const i = get().input;
         const snap: Snapshot = { id: uid('s'), month: i.month, savedAt: new Date().toISOString(), label: label ?? (i.isSample ? 'Sample month' : 'My numbers'), input: JSON.parse(JSON.stringify(i)) };

@@ -8,6 +8,7 @@
  */
 import type { AdFormat, AdRow, BusinessType, FieldKey, MonthInput, Scenario } from './types';
 import { FIELD } from './fields';
+import { PLATFORM_SPEND_FIELD } from './parse/common';
 
 export type MetricUnit = 'money' | 'pct' | 'ratio' | 'count' | 'months' | 'score';
 
@@ -414,7 +415,8 @@ function clone(input: MonthInput): MonthInput {
   return { ...input, values: { ...input.values }, ads: input.ads.map((a) => ({ ...a })), products: input.products.map((p) => ({ ...p })), channels: input.channels.map((c) => ({ ...c })) };
 }
 
-const PLATFORM_FIELD: Record<string, FieldKey> = { Meta: 'adSpendMeta', Google: 'adSpendGoogle', TikTok: 'adSpendTiktok', Other: 'adSpendOther' };
+const PLATFORM_FIELD: Record<string, FieldKey> = PLATFORM_SPEND_FIELD;
+const SPEND_FIELDS: FieldKey[] = ['adSpendMeta', 'adSpendGoogle', 'adSpendTiktok', 'adSpendOther'];
 
 /** Scale sales volume: revenue and the costs that move with it. */
 function scaleVolume(x: MonthInput, f: number) {
@@ -499,7 +501,7 @@ export function applyScenario(base: MonthInput, s: Scenario): MonthInput {
       });
       addSalesRevenue(x, adRev * (factor - 1));
     } else {
-      for (const k of Object.values(PLATFORM_FIELD)) if (v[k] != null) v[k] = (v[k] as number) * factor;
+      for (const k of SPEND_FIELDS) if (v[k] != null) v[k] = (v[k] as number) * factor;
     }
   }
 

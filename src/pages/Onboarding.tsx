@@ -9,7 +9,7 @@ import type { BusinessType } from '../lib/types';
 import { useStore } from '../store';
 
 const MONEY = ['Stripe', 'Shopify', 'PayPal', 'Bank', 'Other'];
-const ADS = ['Meta', 'Google', 'TikTok', 'None yet'];
+const ADS = ['Meta', 'Google', 'TikTok', 'Pinterest', 'Snapchat', 'LinkedIn', 'Microsoft', 'Other', 'None yet'];
 
 function Chip({ on, label, onClick, id }: { on: boolean; label: string; onClick: () => void; id: string }) {
   return (

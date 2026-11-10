@@ -22,7 +22,7 @@ interface Rule {
 const RULES: Rule[] = [
   // ads dashboards
   { target: 'ad.revenue', re: /(purchases? conversion value|conv(ersion)?\.? value|purchase value|website purchases value)/i, confidence: 'high', adsOnly: true },
-  { target: 'ad.spend', re: /(amount spent|total spend|\bspend\b|\bcost\b(?! \/| per))/i, confidence: 'high', adsOnly: true },
+  { target: 'ad.spend', re: /(amount spent|total spent|total spend|\bspend\b|\bspent\b|\bcost\b(?! \/| per))/i, confidence: 'high', adsOnly: true },
   { target: 'ad.impressions', re: /(impressions|\bimpr\.?)/i, confidence: 'high', adsOnly: true },
   { target: 'ad.clicks', re: /(link clicks|\bclicks\b)/i, confidence: 'high', adsOnly: true },
   { target: 'ad.conversions', re: /(\bpurchases\b|\bconversions\b|\bresults\b)/i, confidence: 'medium', adsOnly: true },
@@ -46,7 +46,7 @@ export type TextKind = 'ads' | 'payments' | 'store' | 'bank' | 'unknown';
 export function detectKind(text: string): { kind: TextKind; platform: AdPlatform | null; label: string } {
   const t = text.toLowerCase();
   const platform = inferPlatform(t);
-  const adsSignals = /(amount spent|impressions|\bimpr\b|link clicks|\bctr\b|\bcpc\b|\bcpm\b|roas|ads manager|conv\. value)/.test(t);
+  const adsSignals = /(amount spent|impressions|\bimpr\b|link clicks|\bctr\b|\bcpc\b|\bcpm\b|roas|ads manager|campaign manager|conv\. value|total spent|paid impressions)/.test(t);
   if (adsSignals) return { kind: 'ads', platform: platform ?? 'Other', label: `${platform ?? 'Ads'} dashboard` };
   if (/(stripe|gross volume|net volume|successful payments|paypal)/.test(t)) return { kind: 'payments', platform: null, label: /paypal/.test(t) ? 'PayPal report' : 'Stripe dashboard' };
   if (/(shopify|online store sessions|gross sales|total orders|returning customer rate)/.test(t)) return { kind: 'store', platform: null, label: 'Shopify analytics' };

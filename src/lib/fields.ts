@@ -30,7 +30,7 @@ export const FIELDS: FieldDef[] = [
   { key: 'adSpendMeta', label: 'Meta ads spend', short: 'Meta', group: 'Ad spend', unit: 'money', question: 'How much did you spend on Meta (Facebook / Instagram) ads?', max: 60000, step: 50 },
   { key: 'adSpendGoogle', label: 'Google ads spend', short: 'Google', group: 'Ad spend', unit: 'money', question: 'How much did you spend on Google Ads?', max: 60000, step: 50 },
   { key: 'adSpendTiktok', label: 'TikTok ads spend', short: 'TikTok', group: 'Ad spend', unit: 'money', question: 'How much did you spend on TikTok ads?', max: 60000, step: 50 },
-  { key: 'adSpendOther', label: 'Other ad spend', short: 'Other ads', group: 'Ad spend', unit: 'money', question: 'Any other paid ads or sponsorships?', max: 60000, step: 50 },
+  { key: 'adSpendOther', label: 'Other ad platforms', short: 'Other ads', group: 'Ad spend', unit: 'money', question: 'Any other ad spend? Pinterest, Snapchat, LinkedIn, Microsoft, Reddit, X, Amazon, podcasts or sponsorships.', hint: 'Add them together. Enter 0 if none.', max: 60000, step: 50 },
   { key: 'sessions', label: 'Website visits / sessions', short: 'Visits', group: 'Customers & traffic', unit: 'count', question: 'How many visits did your site or sales page get?', max: 500000, step: 100 },
   { key: 'orders', label: 'Orders / sales', short: 'Orders', group: 'Customers & traffic', unit: 'count', question: 'How many orders or sales did you make?', hint: 'For SaaS: new paid subscriptions. For agencies: new signed clients.', max: 20000, step: 1 },
   { key: 'newCustomers', label: 'New customers', group: 'Customers & traffic', unit: 'count', question: 'How many brand-new customers did you get?', max: 20000, step: 1 },

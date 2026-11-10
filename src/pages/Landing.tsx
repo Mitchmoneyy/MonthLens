@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { PhotoStrip, photo } from '../components/PhotoStrip';
+import { ScrollStory } from '../components/ScrollStory';
 import { Button, CountUp, LensDial, Reveal, Slider } from '../components/ui';
 import { ThemeToggle, go } from '../App';
 import { applyScenario, computeReview, recommend } from '../lib/calc';
@@ -159,6 +160,10 @@ export default function Landing() {
 
       <section className="mt-12 border-y border-ink py-3" aria-label="Businesses MonthLens is built for">
         <PhotoStrip items={STRIP} height={200} />
+      </section>
+
+      <section aria-label="Where a month's revenue goes">
+        <ScrollStory review={r} title={`Sample month · where ${money(r.m.revenue.value)} went`} />
       </section>
 
       <section className="gutter mx-auto max-w-6xl py-16 sm:py-24">

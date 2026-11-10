@@ -7,7 +7,7 @@ import { money, pct } from '../lib/format';
 import type { Candidate } from '../lib/parse/common';
 import { detectKind, detectRoles, KIND_LABELS, parseTable, ROLE_LABELS, tableAsText, tableCandidates, tableFromJson, type Role, type Table, type TableKind } from '../lib/parse/csv';
 import { extractFromText } from '../lib/parse/text';
-import { AD_FORMATS, type AdFormat, type FieldKey, type Source } from '../lib/types';
+import { AD_FORMATS, type AdFormat, type FieldKey, type NamedAmount, type Source } from '../lib/types';
 import { nav, useStore } from '../store';
 
 type Status = 'pending' | 'approved' | 'ignored';
@@ -123,10 +123,11 @@ function ReviewQueue({ items, setItems }: { items: Item[]; setItems: (f: (x: Ite
           id="apply-approved"
           disabled={!approved.length}
           onClick={() => {
+            const wasSample = useStore.getState().input.isSample;
             apply(approved);
             setItems((xs) => xs.filter((x) => x.status !== 'approved'));
             const after = computeReview(useStore.getState().input).m.netProfit.value;
-            toast(after === null ? `Applied ${approved.length} values` : `Applied ${approved.length} values · profit now ${money(after)}${before !== null ? ` (was ${money(before)})` : ''}`);
+            toast(wasSample ? `Started a new month with your ${approved.length} values` : after === null ? `Applied ${approved.length} values` : `Applied ${approved.length} values · profit now ${money(after)}${before !== null ? ` (was ${money(before)})` : ''}`);
           }}
         >
           Apply {approved.length || ''} approved
@@ -496,12 +497,51 @@ function QuestionsTab() {
 
 // ---------------------------------------------------------------- manual
 
+function NamedList({ title, hint, items, onChange, idPrefix, total }: { title: string; hint: string; items: NamedAmount[]; onChange: (x: NamedAmount[]) => void; idPrefix: string; total: number | null }) {
+  const sum = items.reduce((s, i) => s + (i.amount || 0), 0);
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-2">
+        <h4 className="text-sm font-medium">{title}</h4>
+        {items.length > 0 && total ? <span className={`num text-[11px] ${Math.abs(sum - total) > 1 ? '' : 'text-mute'}`}>{money(sum)} of {money(total)}{Math.abs(sum - total) > 1 ? ' — doesn’t match revenue' : ''}</span> : null}
+      </div>
+      <p className="text-xs text-mute">{hint}</p>
+      <ul className="mt-2 space-y-2">
+        {items.map((it, i) => (
+          <li key={i} className="grid grid-cols-[1fr_8.5rem_auto] items-center gap-2">
+            <input id={`${idPrefix}-name-${i}`} aria-label={`${title} name`} value={it.name} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} className="min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-sm" />
+            <NumberField id={`${idPrefix}-amt-${i}`} value={it.amount} onChange={(v) => onChange(items.map((x, j) => (j === i ? { ...x, amount: v ?? 0 } : x)))} prefix="$" />
+            <button type="button" onClick={() => onChange(items.filter((_, j) => j !== i))} className="px-2 text-mute hover:text-ink" aria-label={`Remove ${it.name}`}>
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button type="button" onClick={() => onChange([...items, { name: '', amount: 0 }])} className="mt-2 rounded-full border border-line px-3 py-1.5 text-xs hover:border-ink">
+        + Add {title.toLowerCase().includes('channel') ? 'a channel' : 'a product'}
+      </button>
+    </div>
+  );
+}
+
 function ManualTab() {
   const input = useStore((s) => s.input);
   const setValue = useStore((s) => s.setValue);
   const setGoal = useStore((s) => s.setGoal);
   const setMonth = useStore((s) => s.setMonth);
+  const setProducts = useStore((s) => s.setProducts);
+  const setChannels = useStore((s) => s.setChannels);
   const groups = [...new Set(FIELDS.map((f) => f.group))];
+  if (input.isSample)
+    return (
+      <div className="mx-auto max-w-lg py-10 text-center">
+        <p className="display text-2xl">These are sample numbers.</p>
+        <p className="mt-2 text-mute">Start a blank month to type your own, so nothing from the sample mixes in.</p>
+        <Button className="mt-6" id="manual-start-blank" onClick={() => useStore.getState().startReal()}>
+          Start a blank month
+        </Button>
+      </div>
+    );
   return (
     <div className="space-y-10">
       <div className="grid gap-6 sm:grid-cols-2">
@@ -546,6 +586,15 @@ function ManualTab() {
           </div>
         </fieldset>
       ))}
+      <fieldset>
+        <legend className="mb-4 w-full border-b border-ink pb-2 text-lg font-extrabold" style={{ fontFamily: 'Archivo' }}>
+          Revenue breakdown
+        </legend>
+        <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
+          <NamedList idPrefix="prod" title="By product" hint="Your top products or plans and what each brought in." items={input.products} onChange={setProducts} total={input.values.grossRevenue ?? null} />
+          <NamedList idPrefix="chan" title="By channel" hint="Where sales came from: paid social, search, email, organic, referrals." items={input.channels} onChange={setChannels} total={input.values.grossRevenue ?? null} />
+        </div>
+      </fieldset>
     </div>
   );
 }

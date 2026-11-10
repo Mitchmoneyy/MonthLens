@@ -44,23 +44,53 @@ export function firstNumber(s: string): { value: number; text: string; pct: bool
   return null;
 }
 
+/** Guess an ad's format from its name, campaign or a format column. Order matters: most specific first. */
 export function inferFormat(text: string): AdFormat {
   const t = text.toLowerCase();
+  if (/lead ?form|lead gen|instant form|\blead ads?\b/.test(t)) return 'Lead Form';
+  if (/\bpmax\b|performance max/.test(t)) return 'Performance Max';
+  if (/shopping|\bpla\b|product listing|merchant center/.test(t)) return 'Shopping / Product Listing';
+  if (/\bdpa\b|dynamic product|catalog|catalogue|advantage\+ catalog/.test(t)) return 'Catalog / Dynamic Product';
+  if (/collection|instant experience|\bcanvas\b/.test(t)) return 'Collection / Instant Experience';
+  if (/display|banner|\bgdn\b|\bdemand gen\b/.test(t)) return 'Display / Banner';
+  if (/search|\brsa\b|keyword|text ad|\bdsa\b/.test(t)) return 'Search Text';
+  if (/influencer|sponsor|paid partnership|whitelist|brand deal/.test(t)) return 'Influencer / Sponsorship';
+  if (/podcast|audio|spotify|radio/.test(t)) return 'Audio / Podcast';
   if (/\bugc\b|creator|testimonial video|unbox/.test(t)) return 'UGC / Creator Video';
-  if (/\breel|\bstory|stories/.test(t)) return 'Story / Reel';
-  if (/carousel|collection/.test(t)) return 'Carousel';
-  if (/search|\brsa\b|responsive search|keyword/.test(t)) return 'Search Text';
-  if (/video|\bvid\b|spark|\d+s\b/.test(t)) return 'Video';
-  if (/static|image|\bimg\b|photo|banner|display/.test(t)) return 'Static Image';
+  if (/\breels?\b|\bstory|stories|\bshorts\b/.test(t)) return 'Story / Reel';
+  if (/carousel/.test(t)) return 'Carousel';
+  if (/video|\bvid\b|youtube|spark|\d+s\b/.test(t)) return 'Video';
+  if (/static|image|\bimg\b|photo|\bpin\b/.test(t)) return 'Static Image';
   return 'Other';
 }
 
+/** Guess the ad platform. Platforms with their own "Ads Manager" are checked before Meta. */
 export function inferPlatform(text: string): AdPlatform | null {
   const t = text.toLowerCase();
   if (/tiktok/.test(t)) return 'TikTok';
+  if (/pinterest/.test(t)) return 'Pinterest';
+  if (/snapchat|snap ads/.test(t)) return 'Snapchat';
+  if (/linkedin/.test(t)) return 'LinkedIn';
+  if (/reddit/.test(t)) return 'Reddit';
+  if (/microsoft|bing/.test(t)) return 'Microsoft';
+  if (/amazon/.test(t)) return 'Amazon';
+  if (/twitter|\bx ads\b/.test(t)) return 'X';
   if (/\bmeta\b|facebook|instagram|ads manager|amount spent|link clicks/.test(t)) return 'Meta';
-  if (/google|adwords|\bimpr\b|conv\. value|cost \/ conv/.test(t)) return 'Google';
+  if (/google|adwords|youtube|\bimpr\b|conv\. value|cost \/ conv/.test(t)) return 'Google';
   return null;
 }
 
-export const PLATFORM_SPEND_FIELD: Record<AdPlatform, FieldKey> = { Meta: 'adSpendMeta', Google: 'adSpendGoogle', TikTok: 'adSpendTiktok', Other: 'adSpendOther' };
+/** Channel spend field for each platform. Platforms without their own field roll into "Other ad platforms". */
+export const PLATFORM_SPEND_FIELD: Record<AdPlatform, FieldKey> = {
+  Meta: 'adSpendMeta',
+  Google: 'adSpendGoogle',
+  TikTok: 'adSpendTiktok',
+  Pinterest: 'adSpendOther',
+  Snapchat: 'adSpendOther',
+  LinkedIn: 'adSpendOther',
+  Microsoft: 'adSpendOther',
+  Reddit: 'adSpendOther',
+  X: 'adSpendOther',
+  Amazon: 'adSpendOther',
+  Other: 'adSpendOther',
+};

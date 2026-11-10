@@ -59,7 +59,7 @@ const SYNONYMS: [Role, string[]][] = [
   ['conversions', ['purchases', 'conversions', 'results', 'conv']],
   ['adName', ['ad name', 'creative name', 'ad group name', 'ad group', 'creative']],
   ['campaign', ['campaign name', 'campaign']],
-  ['format', ['ad format', 'format', 'ad type', 'creative type']],
+  ['format', ['ad format', 'format', 'ad type', 'creative type', 'campaign type', 'placement type']],
   ['platform', ['platform', 'network', 'channel']],
   ['product', ['lineitem name', 'product title', 'product name', 'product', 'item name', 'item']],
   ['quantity', ['lineitem quantity', 'quantity', 'qty', 'units']],
@@ -188,7 +188,9 @@ export function tableCandidates(table: Table, roles: Role[], kind: TableKind, so
       if (spend === null) continue;
       const name = cell(r, 'adName') || cell(r, 'campaign') || 'Ad';
       const platform: AdPlatform = (inferPlatform(cell(r, 'platform')) as AdPlatform) || headerPlatform || 'Other';
-      const format = cell(r, 'format') ? inferFormat(cell(r, 'format')) : inferFormat(`${name} ${cell(r, 'campaign')} ${platform === 'Google' ? 'search' : ''}`);
+      let format = cell(r, 'format') ? inferFormat(cell(r, 'format')) : inferFormat(`${name} ${cell(r, 'campaign')} ${cell(r, 'type')}`);
+      // Google rows with no other hint are almost always search ads
+      if (format === 'Other' && (platform === 'Google' || platform === 'Microsoft')) format = 'Search Text';
       byPlatform.set(platform, (byPlatform.get(platform) ?? 0) + spend);
       out.push({
         id: uid(),
@@ -200,7 +202,14 @@ export function tableCandidates(table: Table, roles: Role[], kind: TableKind, so
         note: format === 'Other' ? 'Format not detected — choose one' : undefined,
       });
     }
-    for (const [p, s] of byPlatform) field(PLATFORM_SPEND_FIELD[p], s, `Sum of ${p} spend column`, 'high', `${p} total spend`);
+    // one total per spend field: smaller platforms share "Other ad platforms"
+    const byField = new Map<FieldKey, { spend: number; names: string[] }>();
+    for (const [p, sp] of byPlatform) {
+      const k = PLATFORM_SPEND_FIELD[p];
+      const cur = byField.get(k) ?? { spend: 0, names: [] };
+      byField.set(k, { spend: cur.spend + sp, names: [...cur.names, p] });
+    }
+    for (const [k, x] of byField) field(k, x.spend, `Sum of ${x.names.join(' + ')} spend`, 'high', `${x.names.join(' + ')} total spend`);
     return { candidates: out, summary: `${out.filter((c) => c.kind === 'ad').length} ads across ${byPlatform.size} platform(s)` };
   }
 

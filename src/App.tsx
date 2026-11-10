@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useStore, previousInput, seriesInputs } from './store';
 import { computeReview, computeReviewWithPrev, monthName, projectPlan, recommend } from './lib/calc';
 import { money, pct } from './lib/format';
@@ -226,11 +226,52 @@ function Shell() {
   );
 }
 
+/** If a page crashes, show a way out instead of a blank screen. Saved data is untouched. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidMount() {
+    window.addEventListener('hashchange', this.clear);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('hashchange', this.clear);
+  }
+  clear = () => this.state.error && this.setState({ error: null });
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="gutter mx-auto max-w-lg py-20">
+        <div className="eyebrow">Something broke</div>
+        <h1 className="display mt-2 text-3xl">This page hit an error.</h1>
+        <p className="mt-3 text-mute">Your saved numbers are safe. Go back to the overview, or reload the page.</p>
+        <p className="mt-3 font-mono text-xs text-faint">{this.state.error.message}</p>
+        <div className="mt-6 flex gap-2">
+          <Button
+            onClick={() => {
+              this.setState({ error: null });
+              location.hash = 'overview';
+            }}
+          >
+            Back to overview
+          </Button>
+          <Button variant="secondary" onClick={() => location.reload()}>
+            Reload
+          </Button>
+        </div>
+      </div>
+    );
+  }
+}
+
 export default function App() {
   return (
     <ToastProvider>
       <FormulaProvider>
-        <Shell />
+        <ErrorBoundary>
+          <Shell />
+        </ErrorBoundary>
       </FormulaProvider>
     </ToastProvider>
   );

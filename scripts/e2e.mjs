@@ -97,6 +97,41 @@ try {
   const afterShot = await page.getByTestId('sticky-profit').innerText();
   ok('2d. Profit after both imports reflects approved values', money(afterShot.match(/\$[\d,]+/)[0]) === Math.round(2450 - 80 - 71.95 - 640), afterShot.replace(/\n/g, ' '));
 
+  // PDF import: read the report this app exports
+  {
+    const pdfFixture = path.join(root, 'e2e-fixtures/import-test.pdf');
+    const tmp = await ctx.newPage();
+    await tmp.goto(BASE + '#history');
+    const [d] = await Promise.all([tmp.waitForEvent('download'), tmp.click('#export-pdf')]);
+    await d.saveAs(pdfFixture);
+    await tmp.close();
+    await page.click('#tab-file');
+    await page.setInputFiles('#file-input', pdfFixture);
+    await page.locator('#send-to-review').waitFor();
+    const label = await page.locator('#send-to-review').innerText();
+    ok('2e. PDF export can be read back as an import', /Review [1-9]/.test(label), label);
+  }
+
+  // importing over a sample month starts a clean month instead of mixing
+  {
+    await page.goto(BASE + '#start');
+    await page.click('#type-saas');
+    await page.waitForTimeout(300);
+    await page.click('#onb-next');
+    await page.click('#onb-next');
+    await page.click('#onb-finish');
+    await page.waitForURL(/#overview/);
+    await page.goto(BASE + '#import');
+    await page.click('#tab-paste');
+    await page.fill('#paste-box', 'Stripe\nGross volume $9,000.00\nRefunds $100.00');
+    await page.click('#read-paste');
+    { const ap = page.getByRole('button', { name: 'Approve', exact: true }); while (await ap.count()) await ap.first().click(); }
+    await page.click('#apply-approved');
+    await page.waitForTimeout(400);
+    const st = await page.evaluate(() => JSON.parse(localStorage.getItem('monthlens.v1')).state.input);
+    ok('2f. Import over a sample starts a clean month', st.isSample === false && st.values.grossRevenue === 9000 && st.values.software == null && st.ads.length === 0, `software=${st.values.software}, ads=${st.ads.length}`);
+  }
+
   // back to sample for the remaining checks
   await page.goto(BASE + '#start');
   await page.click('#type-ecommerce');

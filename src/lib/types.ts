@@ -26,10 +26,27 @@ export type FieldKey =
 
 export type Source = 'sample' | 'manual' | 'csv' | 'screenshot' | 'paste' | 'question' | 'pdf' | 'json' | 'share';
 
-export type AdFormat = 'Video' | 'Static Image' | 'Carousel' | 'UGC / Creator Video' | 'Story / Reel' | 'Search Text' | 'Other';
-export const AD_FORMATS: AdFormat[] = ['Video', 'Static Image', 'Carousel', 'UGC / Creator Video', 'Story / Reel', 'Search Text', 'Other'];
+export const AD_FORMATS = [
+  'Video',
+  'Static Image',
+  'Carousel',
+  'UGC / Creator Video',
+  'Story / Reel',
+  'Collection / Instant Experience',
+  'Catalog / Dynamic Product',
+  'Search Text',
+  'Shopping / Product Listing',
+  'Performance Max',
+  'Display / Banner',
+  'Lead Form',
+  'Influencer / Sponsorship',
+  'Audio / Podcast',
+  'Other',
+] as const;
+export type AdFormat = (typeof AD_FORMATS)[number];
 
-export type AdPlatform = 'Meta' | 'Google' | 'TikTok' | 'Other';
+export const AD_PLATFORMS = ['Meta', 'Google', 'TikTok', 'Pinterest', 'Snapchat', 'LinkedIn', 'Microsoft', 'Reddit', 'X', 'Amazon', 'Other'] as const;
+export type AdPlatform = (typeof AD_PLATFORMS)[number];
 
 export interface AdRow {
   id: string;

@@ -53,6 +53,7 @@ export default function History() {
   const del = useStore((s) => s.deleteSnapshot);
   const open = useStore((s) => s.openSnapshot);
   const replace = useStore((s) => s.replaceInput);
+  const resetAll = useStore((s) => s.resetAll);
   const A = useStore((s) => s.scenarioA);
   const B = useStore((s) => s.scenarioB);
   const toast = useToast();
@@ -339,7 +340,33 @@ export default function History() {
             </dl>
           </div>
         </div>
-        <p className="mt-3 text-xs text-mute">Everything stays in this browser. There’s no account; clearing site data removes your history.</p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-mute">
+          <span>Everything stays in this browser. There’s no account.</span>
+          {confirmDel === 'ALL' ? (
+            <span className="flex items-center gap-2">
+              <span className="text-ink">Delete every saved month, plan and setting?</span>
+              <button
+                type="button"
+                id="confirm-reset"
+                onClick={() => {
+                  resetAll();
+                  setConfirmDel(null);
+                  location.hash = 'home';
+                }}
+                className="rounded-full bg-inv px-3 py-1 text-invink"
+              >
+                Delete everything
+              </button>
+              <button type="button" onClick={() => setConfirmDel(null)} className="underline">
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <button type="button" id="reset-all" onClick={() => setConfirmDel('ALL')} className="underline underline-offset-2 hover:text-ink">
+              Delete all my data from this browser
+            </button>
+          )}
+        </div>
       </Reveal>
     </div>
   );

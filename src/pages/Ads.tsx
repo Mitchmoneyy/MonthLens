@@ -4,7 +4,7 @@ import { Button, MetricValue, NumberField, Pill, Reveal, SectionTitle } from '..
 import type { FormatStats } from '../lib/calc';
 import { count, money, pct, ratio } from '../lib/format';
 import { uid } from '../lib/parse/common';
-import { AD_FORMATS, type AdFormat, type AdPlatform, type AdRow } from '../lib/types';
+import { AD_FORMATS, AD_PLATFORMS, type AdFormat, type AdPlatform, type AdRow } from '../lib/types';
 import { useStore } from '../store';
 
 type ChartKey = 'profit' | 'roas' | 'cpa' | 'ctr';
@@ -109,7 +109,7 @@ function RowsEditor() {
                 </td>
                 <td className="py-1.5 pr-2">
                   <select aria-label="Platform" value={a.platform} onChange={(e) => upd(a.id, { platform: e.target.value as AdPlatform })} className="rounded border border-line bg-surface px-1 py-1.5">
-                    {['Meta', 'Google', 'TikTok', 'Other'].map((p) => (
+                    {AD_PLATFORMS.map((p) => (
                       <option key={p}>{p}</option>
                     ))}
                   </select>
@@ -167,6 +167,19 @@ export default function Ads() {
       </div>
     );
 
+  const byPlatform = AD_PLATFORMS.map((platform) => {
+    const rows = input.ads.filter((r) => r.platform === platform);
+    const has = (k: 'revenue' | 'conversions') => rows.some((r) => r[k] !== null);
+    return {
+      platform,
+      spend: rows.reduce((s, r) => s + r.spend, 0),
+      revenue: has('revenue') ? rows.reduce((s, r) => s + (r.revenue ?? 0), 0) : null,
+      conversions: has('conversions') ? rows.reduce((s, r) => s + (r.conversions ?? 0), 0) : null,
+      n: rows.length,
+    };
+  })
+    .filter((p) => p.n > 0)
+    .sort((x, y) => y.spend - x.spend);
   const scale = a.formats.filter((f) => a.scale.includes(f.format));
   const cut = a.formats.filter((f) => a.cut.includes(f.format) || (f.verdict === 'fix' && !a.cut.length));
 
@@ -257,6 +270,42 @@ export default function Ads() {
           </ul>
         </div>
       </Reveal>
+
+      {byPlatform.length > 0 && (
+        <Reveal as="section">
+          <SectionTitle eyebrow={`${byPlatform.length} platform${byPlatform.length > 1 ? 's' : ''}`} title="Spend by platform" />
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
+              <thead>
+                <tr className="eyebrow text-right">
+                  <th className="pb-2 text-left font-normal">Platform</th>
+                  <th className="pb-2 text-left font-normal">Share of spend</th>
+                  <th className="pb-2 pl-3 font-normal">Spend</th>
+                  <th className="pb-2 pl-3 font-normal">Revenue</th>
+                  <th className="pb-2 pl-3 font-normal">ROAS</th>
+                  <th className="pb-2 pl-3 font-normal">Conv.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byPlatform.map((p) => (
+                  <tr key={p.platform} className="border-t border-line">
+                    <td className="py-2.5 pr-3 font-medium">{p.platform}</td>
+                    <td className="w-[35%] py-2.5 pr-3">
+                      <div className="h-2 bg-raised">
+                        <div className="h-full bg-ink" style={{ width: `${(p.spend / a.totalSpend) * 100}%` }} />
+                      </div>
+                    </td>
+                    <td className="num py-2.5 pl-3 text-right">{money(p.spend)}</td>
+                    <td className="num py-2.5 pl-3 text-right">{money(p.revenue)}</td>
+                    <td className="num py-2.5 pl-3 text-right font-semibold">{ratio(p.revenue === null || !p.spend ? null : p.revenue / p.spend)}</td>
+                    <td className="num py-2.5 pl-3 text-right">{count(p.conversions)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Reveal>
+      )}
 
       <Reveal as="section">
         <SectionTitle eyebrow="Visual comparison" title="Formats side by side" />

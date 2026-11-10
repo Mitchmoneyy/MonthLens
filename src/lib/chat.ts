@@ -8,6 +8,7 @@ import { applyScenario, BENCHMARKS, computeReview, tierOf, type Recommendation, 
 import { fmtUnit, money, pct, ratio } from './format';
 import type { AdFormat, Scenario } from './types';
 import { AD_FORMATS } from './types';
+import { inferFormat } from './parse/common';
 
 export interface Answer {
   text: string;
@@ -55,8 +56,8 @@ export function localAnswer(q: string, r: Review, recs: Recommendation[]): Answe
     return scenarioAnswer(r, { pricePct: (down ? -p : p) / 100 }, `${down ? 'Lowering' : 'Raising'} prices ${p}%`);
   }
   if (/(pause|cut|stop|kill|turn off)/.test(t)) {
-    const f = AD_FORMATS.find((x) => t.includes(x.toLowerCase().split(' ')[0].replace('/', '')) || (x === 'Story / Reel' && /reel|story/.test(t)) || (x === 'UGC / Creator Video' && /ugc|creator/.test(t)) || (x === 'Search Text' && /search/.test(t)));
-    if (f && r.ads.formats.some((x) => x.format === f)) return scenarioAnswer(r, { cutFormats: [f as AdFormat] }, `Pausing ${f} ads`);
+    const f = inferFormat(t);
+    if ((f !== 'Other' || /\bother\b/.test(t)) && r.ads.formats.some((x) => x.format === f)) return scenarioAnswer(r, { cutFormats: [f as AdFormat] }, `Pausing ${f} ads`);
   }
   if (/churn/.test(t) && r.input.values.churnRate != null) {
     const p = num(/([\d.]+)\s?(?:%|points|pts)/) ?? 2;
@@ -140,7 +141,7 @@ export const SCENARIO_TOOL_SCHEMA = {
     churnPts: { type: 'number', description: 'Churn change in percentage points, e.g. -2' },
     cogsPct: { type: 'number', description: 'COGS change as a fraction' },
     fixedPct: { type: 'number', description: 'Software + contractors + other change as a fraction' },
-    cutFormats: { type: 'array', items: { type: 'string', enum: AD_FORMATS }, description: 'Ad formats to pause' },
+    cutFormats: { type: 'array', items: { type: 'string', enum: [...AD_FORMATS] }, description: 'Ad formats to pause' },
   },
 };
 
