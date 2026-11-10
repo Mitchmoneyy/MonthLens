@@ -112,6 +112,7 @@ try {
   await p2.getByTestId('acct-email').waitFor();
   await p2.waitForTimeout(600);
   await p2.goto(BASE + '#history');
+  await p2.getByTestId('snapshots').waitFor({ timeout: 8000 }).catch(() => {}); // tabs load on demand
   const phoneSnaps = await p2.getByTestId('snapshots').locator('tbody tr').count();
   const phoneScenario = await p2.locator('text=A · Price +10%').count();
   ok('Phone gets the laptop’s months and scenarios', phoneSnaps === 1 && phoneScenario > 0, `${phoneSnaps} month(s), scenario A ${phoneScenario ? 'present' : 'missing'}`);
