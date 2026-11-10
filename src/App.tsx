@@ -23,12 +23,16 @@ import Advisor from './pages/Advisor';
 import History from './pages/History';
 import Account from './pages/Account';
 import Creators from './pages/Creators';
+import Privacy from './pages/Privacy';
 import { useAccount } from './account';
+import { isStandalone, useInstall } from './install';
+import { syncStatusBar } from './native';
+import { InstallBanner, UpdateBanner } from './components/InstallApp';
 import { decodeShare } from './lib/share';
 import type { MonthInput } from './lib/types';
 import { BUSINESS_TYPES } from './lib/fields';
 
-export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history' | 'account' | 'creators';
+export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history' | 'account' | 'creators' | 'privacy';
 const APP_TABS: { key: Route; label: string; short: string }[] = [
   { key: 'overview', label: 'Overview', short: 'Overview' },
   { key: 'import', label: 'Import', short: 'Import' },
@@ -41,7 +45,9 @@ const APP_TABS: { key: Route; label: string; short: string }[] = [
 function readRoute(): { route: Route; share: string | null } {
   const h = location.hash.replace(/^#/, '');
   if (h.startsWith('share-')) return { route: 'overview', share: h.slice(6) };
-  const r = (['home', 'start', 'overview', 'import', 'ads', 'advisor', 'history', 'account', 'creators'] as Route[]).find((x) => x === h);
+  const r = (['home', 'start', 'overview', 'import', 'ads', 'advisor', 'history', 'account', 'creators', 'privacy'] as Route[]).find((x) => x === h);
+  // opened as an installed app with no page chosen: skip the marketing page
+  if (!r && isStandalone()) return { route: useStore.getState().profile.onboarded ? 'overview' : 'start', share: null };
   return { route: r ?? 'home', share: null };
 }
 
@@ -71,7 +77,22 @@ function useTheme() {
     const el = document.documentElement;
     if (theme === 'system') el.removeAttribute('data-theme');
     else el.setAttribute('data-theme', theme);
+    // the phone's status bar / window title bar matches the top bar
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
+    const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    void syncStatusBar(dark);
+    metas.forEach((m, i) => m.setAttribute('content', theme === 'system' ? (i === 0 ? '#0b0b0b' : '#ededeb') : theme === 'dark' ? '#ededeb' : '#0b0b0b'));
   }, [theme]);
+}
+
+function OfflineBadge() {
+  const online = useInstall((s) => s.online);
+  if (online) return null;
+  return (
+    <span className="rounded-[3px] border border-current/40 px-2 py-1 font-mono text-[10px] uppercase tracking-wider" title="You're offline. Everything still works and saves on this device.">
+      Offline
+    </span>
+  );
 }
 
 /** Top-bar account entry: "Sign in", or the account's initial with sync state. */
@@ -136,6 +157,7 @@ function SummaryBar({ route }: { route: Route }) {
           <span className="rounded-[3px] border border-current/40 px-2 py-0.5 font-mono text-[11px]">{review.health.score ?? '—'}</span>
           <span className="max-w-[12rem] truncate text-xs opacity-80">{review.health.verdict}</span>
         </div>
+        <OfflineBadge />
         <AccountButton />
         <ThemeToggle />
       </div>
@@ -234,7 +256,7 @@ function Shell() {
     return () => window.removeEventListener('hashchange', on);
   }, []);
   useEffect(() => {
-    const titles: Record<Route, string> = { home: 'MonthLens', start: 'Set up · MonthLens', overview: 'Overview · MonthLens', import: 'Import · MonthLens', ads: 'Ads · MonthLens', advisor: 'Next month · MonthLens', history: 'History · MonthLens', account: 'Account · MonthLens', creators: 'Creators · MonthLens' };
+    const titles: Record<Route, string> = { home: 'MonthLens', start: 'Set up · MonthLens', overview: 'Overview · MonthLens', import: 'Import · MonthLens', ads: 'Ads · MonthLens', advisor: 'Next month · MonthLens', history: 'History · MonthLens', account: 'Account · MonthLens', creators: 'Creators · MonthLens', privacy: 'Privacy & support · MonthLens' };
     document.title = titles[route];
   }, [route]);
 
@@ -251,10 +273,13 @@ function Shell() {
   }
   if (route === 'home') return <Landing />;
   if (route === 'start') return <Onboarding />;
+  if (route === 'privacy') return <Privacy />;
   return (
     <div className="min-h-full pb-24 sm:pb-12">
       <SummaryBar route={route} />
+      <UpdateBanner />
       <main className="gutter mx-auto max-w-6xl pt-6 sm:pt-8" key={route}>
+        {route === 'overview' && <InstallBanner />}
         <PageBanner name={BANNERS[route]?.[0] ?? 'desk'} caption={BANNERS[route]?.[1] ?? ''} />
         {route === 'overview' && <Overview />}
         {route === 'import' && <Import />}

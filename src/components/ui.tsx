@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Metric, MetricUnit } from '../lib/calc';
 import { fmtUnit } from '../lib/format';
+import { tap } from '../native';
 
 export const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -19,7 +20,7 @@ export function CountUp({ value, format, className = '' }: { value: number | nul
     const dur = from.current === null ? 900 : 450;
     let raf = 0;
     const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / dur);
+      const p = Math.max(0, Math.min(1, (t - t0) / dur));
       const e = 1 - Math.pow(1 - p, 3);
       setShown(start + (value - start) * e);
       if (p < 1) raf = requestAnimationFrame(tick);
@@ -103,7 +104,7 @@ export function LensDial({ score, size = 180 }: { score: number | null; size?: n
     const t0 = performance.now();
     const start = shown;
     const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / 900);
+      const p = Math.max(0, Math.min(1, (t - t0) / 900));
       setShown(start + (score - start) * (1 - Math.pow(1 - p, 3)));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
@@ -125,10 +126,10 @@ export function LensDial({ score, size = 180 }: { score: number | null; size?: n
         const r2 = c - (major ? 22 : 16);
         return <line key={i} x1={c + r1 * Math.cos(a)} y1={c + r1 * Math.sin(a)} x2={c + r2 * Math.cos(a)} y2={c + r2 * Math.sin(a)} stroke={i < on ? 'var(--ink)' : 'var(--line)'} strokeWidth={major ? 2.5 : 1.5} strokeLinecap="round" />;
       })}
-      <text x={c} y={c + 4} textAnchor="middle" fontFamily="Bodoni Moda, Didot, serif" fontWeight="700" fontSize={size * 0.27} fill="var(--ink)">
+      <text x={c} y={c + 4} textAnchor="middle" fontFamily="Bodoni Moda Variable, Bodoni Moda, Didot, serif" fontWeight="700" fontSize={size * 0.27} fill="var(--ink)">
         {score === null ? '—' : Math.round(shown)}
       </text>
-      <text x={c} y={c + size * 0.15} textAnchor="middle" fontFamily="Martian Mono, monospace" fontSize={size * 0.06} fill="var(--mute)" letterSpacing="1.5">
+      <text x={c} y={c + size * 0.15} textAnchor="middle" fontFamily="Martian Mono Variable, Martian Mono, monospace" fontSize={size * 0.06} fill="var(--mute)" letterSpacing="1.5">
         / 100
       </text>
     </svg>
@@ -147,7 +148,7 @@ export function Button({ children, onClick, variant = 'primary', className = '',
   const base = 'inline-flex items-center justify-center gap-2 rounded-[3px] px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none';
   const v = variant === 'primary' ? 'bg-inv text-invink hover:opacity-85' : variant === 'secondary' ? 'border border-ink text-ink hover:bg-ink hover:text-bg' : 'text-ink underline-offset-4 hover:underline px-2';
   return (
-    <button id={id} type={type} disabled={disabled} onClick={onClick} className={`${base} ${v} ${className}`}>
+    <button id={id} type={type} disabled={disabled} onClick={() => (tap(), onClick?.())} className={`${base} ${v} ${className}`}>
       {children}
     </button>
   );

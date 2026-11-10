@@ -30,6 +30,14 @@ The anon key is meant to be public; row-level security in the schema is what kee
 
 `node scripts/e2e-account.mjs` tests sign-up, sign-in, sync between two devices and sign-out against a fake Supabase.
 
+## iPhone & iPad app (App Store)
+
+The iOS app wraps the same build as the website with [Capacitor](https://capacitorjs.com) (`ios/`). PDF/CSV exports use the iOS share sheet, the status bar follows the theme, buttons give a light haptic tap, and the app opens straight into the review.
+
+Builds run on GitHub's Mac machines: **Actions → "iOS app → App Store Connect" → Run workflow**. It builds, signs and uploads to App Store Connect (TestFlight first). It needs an Apple Developer account and four repository secrets: `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`. See [`store/APP_STORE.md`](store/APP_STORE.md) for the listing text, privacy answers and screenshots.
+
+On a Mac you can also run `npm run ios:sync && npm run ios:open` and build from Xcode.
+
 ## Where things are
 
 | Path | What |

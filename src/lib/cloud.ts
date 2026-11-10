@@ -35,7 +35,10 @@ export function client(): Promise<SupabaseClient> {
 }
 
 /** Where emailed links send people back to: this page, on the Account tab. */
-const backHere = () => `${location.origin}${location.pathname}#account`;
+const backHere = () => (/^https?:/.test(location.protocol) ? `${location.origin}${location.pathname}#account` : `${WEB_APP_URL}#account`);
+
+/** In the iPhone app, emailed links open the website, so they can't sign the app in. */
+export const emailLinksReturnHere = () => /^https?:/.test(location.protocol);
 
 /** Plain-language versions of Supabase's auth errors. */
 export function friendly(err: unknown): string {
@@ -101,6 +104,14 @@ export async function saveRemote(userId: string, payload: SyncedData) {
   const sb = await client();
   const { error } = await sb.from('workspaces').upsert({ user_id: userId, data: payload, updated_at: new Date().toISOString() });
   if (error) throw error;
+}
+
+/** Delete the login and everything stored with it. */
+export async function deleteAccount() {
+  const sb = await client();
+  const { error } = await sb.rpc('delete_my_account');
+  if (error) throw error;
+  await sb.auth.signOut({ scope: 'local' }).catch(() => {});
 }
 
 export async function deleteRemote(userId: string) {

@@ -18,7 +18,7 @@ export function RunwayExplorer({ review }: { review: Review }) {
   const hi = Math.max(cash, ...pts) || 1;
   const W = 600;
   const H = 220;
-  const pad = { l: 8, r: 8, t: 14, b: 22 };
+  const pad = { l: 8, r: 8, t: 14, b: 30 };
   const x = (i: number) => pad.l + (i / N) * (W - pad.l - pad.r);
   const y = (v: number) => pad.t + (1 - (v - lo) / (hi - lo || 1)) * (H - pad.t - pad.b);
   const line = pts.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
@@ -38,13 +38,13 @@ export function RunwayExplorer({ review }: { review: Review }) {
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 w-full" role="img" aria-label={`Cash over 24 months starting at ${money(cash)}`}>
         <line x1={pad.l} x2={W - pad.r} y1={y(0)} y2={y(0)} stroke="var(--ink)" strokeWidth="1" />
-        <text x={W - pad.r} y={y(0) - 4} textAnchor="end" fontSize="10" fontFamily="Martian Mono, monospace" fill="var(--mute)">
+        <text x={W - pad.r} y={y(0) - 4} textAnchor="end" fontSize="17" fontFamily="Martian Mono Variable, Martian Mono, monospace" fill="var(--mute)">
           $0
         </text>
         {[6, 12, 18, 24].map((i) => (
           <g key={i}>
             <line x1={x(i)} x2={x(i)} y1={pad.t} y2={H - pad.b} stroke="var(--line)" />
-            <text x={x(i)} y={H - 6} textAnchor="middle" fontSize="10" fontFamily="Martian Mono, monospace" fill="var(--mute)">
+            <text x={x(i)} y={H - 4} textAnchor="middle" fontSize="17" fontFamily="Martian Mono Variable, Martian Mono, monospace" fill="var(--mute)">
               {i}mo
             </text>
           </g>
@@ -53,7 +53,7 @@ export function RunwayExplorer({ review }: { review: Review }) {
         {runOut !== null && runOut <= N && (
           <g>
             <circle cx={x(runOut)} cy={y(0)} r="5" fill="var(--surface)" stroke="var(--ink)" strokeWidth="2" />
-            <text x={Math.min(x(runOut) + 8, W - 120)} y={y(0) + 16} fontSize="11" fontFamily="Martian Mono, monospace" fill="var(--ink)">
+            <text x={Math.min(x(runOut) + 10, W - 190)} y={y(0) + 24} fontSize="18" fontFamily="Martian Mono Variable, Martian Mono, monospace" fill="var(--ink)">
               $0 in {dateAt(runOut)}
             </text>
           </g>

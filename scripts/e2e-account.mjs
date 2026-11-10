@@ -37,6 +37,12 @@ async function fake(route) {
   }
   if (url.pathname === '/auth/v1/logout') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
   if (url.pathname === '/auth/v1/user') return json(route, 200, session([...users.values()].find((u) => u.id === uidFromAuth())).user);
+  if (url.pathname === '/rest/v1/rpc/delete_my_account') {
+    const uid = uidFromAuth();
+    for (const [email, u] of users) if (u.id === uid) users.delete(email);
+    rows.delete(uid);
+    return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+  }
   if (url.pathname === '/rest/v1/workspaces') {
     const uid = uidFromAuth();
     if (req.method() === 'GET') return json(route, 200, rows.has(uid) ? [{ data: rows.get(uid) }] : []);
@@ -119,6 +125,18 @@ try {
   await p2.click('#acct-signout');
   await p2.locator('#acct-submit').waitFor();
   ok('Sign out returns to the sign-in form, data stays in the browser', (await p2.evaluate(() => JSON.parse(localStorage.getItem('monthlens.v1')).state.snapshots.length)) === 1);
+  // delete the account from the laptop (App Store requirement)
+  await p1.goto(BASE + '#account');
+  await p1.getByTestId('acct-email').waitFor();
+  await p1.click('#acct-delete');
+  await p1.click('#acct-delete-confirm');
+  await p1.locator('#acct-submit').waitFor();
+  ok('Delete my account removes the login and its data', !users.has('owner@example.com') && !rows.has('u1'), `${users.size} users, ${rows.size} rows left`);
+  await p1.click('#acct-tab-signin');
+  await p1.fill('#acct-email', 'owner@example.com');
+  await p1.fill('#acct-password', 'correct horse 42');
+  await p1.click('#acct-submit');
+  ok('A deleted account can’t sign in', /don’t match/.test(await p1.getByRole('status').innerText()));
   ok('No page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
 } catch (e) {

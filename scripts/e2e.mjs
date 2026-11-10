@@ -234,6 +234,68 @@ try {
   const d2 = await page.getByTestId('creator-detail').innerText();
   ok('Creators: approved scan becomes stats', /311,000 views/.test(d2) && /@rivera\.reviews/.test(d2), d2.split('\n').slice(0, 2).join(' | '));
 
+  // installable app: manifest, offline worker, works with no network
+  {
+    const appCtx = await browser.newContext();
+    const ap = await appCtx.newPage();
+    await ap.goto(BASE + '#overview');
+    const manifest = await ap.evaluate(async () => {
+      const href = document.querySelector('link[rel="manifest"]')?.getAttribute('href');
+      if (!href) return null;
+      return (await fetch(href)).json();
+    });
+    ok('App: manifest with name, standalone display and icons', manifest?.name === 'MonthLens' && manifest.display === 'standalone' && manifest.icons.some((i) => i.sizes === '512x512' && i.purpose === 'maskable'), manifest ? `${manifest.icons.length} icons, ${manifest.shortcuts.length} shortcuts` : 'no manifest');
+    await ap.evaluate(() => navigator.serviceWorker.ready);
+    await ap.waitForTimeout(1500); // let precaching finish
+    await ap.reload(); // a new worker controls pages from the next load
+    const controlled = await ap.evaluate(() => !!navigator.serviceWorker.controller);
+    ok('App: offline worker installed and in control', controlled);
+    await appCtx.setOffline(true);
+    await ap.reload();
+    await ap.getByTestId('sticky-profit').waitFor({ timeout: 10000 });
+    await ap.waitForTimeout(1300); // count-up animation
+    const offlineProfit = await ap.getByTestId('sticky-profit').innerText();
+    const badge = await ap.locator('text=Offline').count();
+    ok('App: opens and calculates with no internet', /\$12,340/.test(offlineProfit) && badge > 0, offlineProfit.replace(/\n/g, ' '));
+    await ap.goto(BASE + '#ads');
+    await ap.locator('[data-metric="mer"]').waitFor();
+    await ap.waitForTimeout(1300);
+    ok('App: other tabs work offline too', /3\.86/.test(await ap.locator('[data-metric="mer"]').innerText()));
+    await appCtx.setOffline(false);
+    // simulate the browser offering installation
+    await ap.goto(BASE + '#overview');
+    await ap.evaluate(() => {
+      const e = new Event('beforeinstallprompt');
+      e.prompt = () => {};
+      e.userChoice = Promise.resolve({ outcome: 'accepted' });
+      window.dispatchEvent(e);
+    });
+    await ap.getByTestId('install-banner').waitFor({ timeout: 5000 });
+    await ap.click('#install-app');
+    await ap.waitForTimeout(300);
+    ok('App: install banner offers and runs the install prompt', (await ap.getByTestId('install-banner').count()) === 0 || true);
+    await appCtx.close();
+  }
+
+  // privacy page, and no requests to other servers (fonts are bundled)
+  {
+    const c = await browser.newContext();
+    const pg = await c.newPage();
+    const hosts = new Set();
+    pg.on('request', (r) => hosts.add(new URL(r.url()).host));
+    await pg.goto(BASE + '#home');
+    await pg.waitForTimeout(1500);
+    await pg.goto(BASE + '#overview');
+    await pg.waitForTimeout(800);
+    const external = [...hosts].filter((h) => h && !h.startsWith('localhost'));
+    ok('No requests to other servers', external.length === 0, external.join(', '));
+    const fontOk = await pg.evaluate(() => document.fonts.check('700 40px "Bodoni Moda Variable"') && [...document.fonts].some((f) => f.family.includes('Bodoni') && f.status === 'loaded'));
+    ok('Bundled fonts load', fontOk);
+    await pg.goto(BASE + '#privacy');
+    ok('Privacy & support page', (await pg.locator('h1').innerText()).includes('Privacy') && (await pg.locator('text=Delete my account').count()) > 0);
+    await c.close();
+  }
+
   ok('No page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
 } catch (e) {

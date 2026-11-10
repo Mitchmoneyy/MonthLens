@@ -6,9 +6,9 @@
    big numbers, a newsroom grotesk for reading, a narrow ledger mono for figures. Square corners,
    hairline rules, negatives in parentheses the way accountants write them. */
 :root {
-  --font-display: 'Bodoni Moda', Didot, 'Bodoni 72', Georgia, serif;
-  --font-sans: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Martian Mono', ui-monospace, Menlo, monospace;
+  --font-display: 'Bodoni Moda Variable', 'Bodoni Moda', Didot, 'Bodoni 72', Georgia, serif;
+  --font-sans: 'Schibsted Grotesk Variable', 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Martian Mono Variable', 'Martian Mono', ui-monospace, Menlo, monospace;
   --bg: #f1f1ef;
   --surface: #ffffff;
   --raised: #e7e7e5;

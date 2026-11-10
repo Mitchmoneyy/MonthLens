@@ -17,6 +17,8 @@ async function use(name: string): Promise<any | null> {
 export type SaveResult = 'saved' | 'declined' | 'failed';
 
 export async function saveFile(filename: string, data: Blob | string, mime: string): Promise<SaveResult> {
+  const { isNative, shareFile } = await import('../native');
+  if (isNative()) return shareFile(filename, data);
   const downloads = await use('downloads');
   if (downloads) {
     try {

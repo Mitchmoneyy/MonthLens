@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { deleteCloudData, startCloud, syncNow, useAccount } from '../account';
+import { deleteAccount, startCloud, syncNow, useAccount } from '../account';
 import { Button, useToast } from '../components/ui';
-import { friendly, sendMagicLink, sendReset, setPassword, signIn, signOut, signUp, WEB_APP_URL } from '../lib/cloud';
+import { InstallButton } from '../components/InstallApp';
+import { emailLinksReturnHere, friendly, sendMagicLink, sendReset, setPassword, signIn, signOut, signUp, WEB_APP_URL } from '../lib/cloud';
 import { monthName } from '../lib/calc';
 import { useStore } from '../store';
 
@@ -38,7 +39,7 @@ function SignedOut() {
       if (mode === 'create') {
         if (pw.length < 8) throw new Error('Password should be at least 8 characters');
         const { needsConfirm } = await signUp(email.trim(), pw);
-        setMsg(needsConfirm ? { ok: true, text: `Check ${email.trim()} for a confirmation link. Open it on this device to finish.` } : { ok: true, text: 'Account created. Your data is syncing.' });
+        setMsg(needsConfirm ? { ok: true, text: emailLinksReturnHere() ? `Check ${email.trim()} for a confirmation link. Open it on this device to finish.` : `Check ${email.trim()} for a confirmation link. After you tap it, come back here and sign in.` } : { ok: true, text: 'Account created. Your data is syncing.' });
       } else if (mode === 'signin') {
         await signIn(email.trim(), pw);
       } else if (mode === 'link') {
@@ -46,7 +47,7 @@ function SignedOut() {
         setMsg({ ok: true, text: `Sign-in link sent to ${email.trim()}. Open it on this device.` });
       } else {
         await sendReset(email.trim());
-        setMsg({ ok: true, text: `If there’s an account for ${email.trim()}, a reset link is on its way.` });
+        setMsg({ ok: true, text: `If there’s an account for ${email.trim()}, a reset link is on its way.${emailLinksReturnHere() ? '' : ' Set the new password on the website, then sign in here.'}` });
       }
     } catch (err) {
       setMsg({ ok: false, text: friendly(err) });
@@ -92,7 +93,9 @@ function SignedOut() {
           {busy ? 'One moment…' : actions[mode]}
         </Button>
         <div className="flex flex-wrap justify-between gap-2 text-sm">
-          {mode !== 'link' ? (
+          {!emailLinksReturnHere() ? (
+            <span />
+          ) : mode !== 'link' ? (
             <button type="button" onClick={() => (setMode('link'), setMsg(null))} className="text-mute underline-offset-4 hover:text-ink hover:underline">
               Email me a sign-in link instead
             </button>
@@ -181,6 +184,7 @@ function SignedIn() {
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
+        <InstallButton />
         <Button id="acct-sync" onClick={() => syncNow().then(() => toast('Synced'))} disabled={a.sync === 'syncing'}>
           Sync now
         </Button>
@@ -198,32 +202,41 @@ function SignedIn() {
       <p className="text-sm text-mute">Changes save to your account a moment after you make them. Sign in on your phone with the same email to pick up where you left off.</p>
       <div className="border-t border-line pt-4 text-sm">
         {confirm ? (
-          <span className="flex flex-wrap items-center gap-2">
-            <span>Delete everything stored in your account? This browser keeps its copy.</span>
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await deleteCloudData();
-                  toast('Cloud copy deleted');
-                } catch (x) {
-                  toast(friendly(x));
-                }
-                setConfirm(false);
-              }}
-              className="rounded-[3px] bg-inv px-3 py-1 text-invink"
-            >
-              Delete cloud copy
-            </button>
-            <button type="button" onClick={() => setConfirm(false)} className="underline">
-              Cancel
-            </button>
-          </span>
+          <div className="max-w-xl space-y-3 border border-ink p-4" role="alertdialog" aria-label="Delete account">
+            <p className="font-semibold">Delete your MonthLens account?</p>
+            <p className="text-mute">This removes your login and everything stored in your account, on every device, and can’t be undone. This device keeps its own copy of your numbers until you clear it in History.</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                id="acct-delete-confirm"
+                onClick={async () => {
+                  try {
+                    await deleteAccount();
+                    toast('Your account was deleted');
+                  } catch (x) {
+                    toast(friendly(x));
+                  }
+                  setConfirm(false);
+                }}
+                className="rounded-[3px] bg-inv px-4 py-2 text-invink"
+              >
+                Delete my account
+              </button>
+              <button type="button" onClick={() => setConfirm(false)} className="px-3 underline">
+                Keep my account
+              </button>
+            </div>
+          </div>
         ) : (
-          <button type="button" onClick={() => setConfirm(true)} className="text-mute underline underline-offset-2 hover:text-ink">
-            Delete the data stored in my account
+          <button type="button" id="acct-delete" onClick={() => setConfirm(true)} className="text-mute underline underline-offset-2 hover:text-ink">
+            Delete my account
           </button>
         )}
+        <p className="mt-3 text-xs text-mute">
+          <a href="#privacy" className="underline">
+            Privacy & support
+          </a>
+        </p>
       </div>
     </div>
   );

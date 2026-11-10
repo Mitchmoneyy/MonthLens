@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { PhotoStrip, photo } from '../components/PhotoStrip';
 import { ScrollStory } from '../components/ScrollStory';
 import { FocusImage } from '../components/FocusImage';
+import { InstallButton } from '../components/InstallApp';
 import { Button, CountUp, LensDial, Reveal, Slider } from '../components/ui';
 import { AccountButton, ThemeToggle, go } from '../App';
 import { applyScenario, computeReview, recommend } from '../lib/calc';
@@ -135,7 +136,10 @@ export default function Landing() {
               See a sample review →
             </Button>
           </div>
-          <p className="mt-6 font-mono text-xs text-mute">No account · Numbers stay in your browser · Works with screenshots</p>
+          <div className="mt-4">
+            <InstallButton variant="ghost" className="px-0" />
+          </div>
+          <p className="mt-6 font-mono text-xs text-mute">No account · Works offline · Computer and phone</p>
         </div>
         <div className="relative">
           <img src={photo('typing')} alt="Hands typing on a laptop at a clean desk" className="photo aspect-[4/5] w-full max-w-full object-cover md:aspect-[4/5]" />
@@ -247,7 +251,9 @@ export default function Landing() {
       </section>
 
       <footer className="gutter mx-auto flex max-w-6xl flex-wrap justify-between gap-3 py-8 text-xs text-mute">
-        <span>Your data stays in this browser unless you share it.</span>
+        <span>
+          Your data stays on your device unless you share it. <a href="#privacy" className="underline">Privacy & support</a>
+        </span>
         <span>Photography: Start Bootstrap theme library (MIT), originally via Unsplash.</span>
       </footer>
     </div>

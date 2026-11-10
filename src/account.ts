@@ -3,7 +3,7 @@
  * device before, arrives from an emailed link, or opens the Account tab.
  */
 import { create } from 'zustand';
-import { availability, client, deleteRemote, loadRemote, saveRemote, type CloudAvailability } from './lib/cloud';
+import { availability, client, deleteAccount as deleteAccountRemote, deleteRemote, loadRemote, saveRemote, type CloudAvailability } from './lib/cloud';
 import { isPristine, mergeData, SYNCED_KEYS, type SyncedData } from './lib/sync';
 import { useStore } from './store';
 
@@ -80,6 +80,13 @@ export async function syncNow() {
   }
 }
 
+/** Delete the account and its cloud data. This device keeps its own copy of the numbers. */
+export async function deleteAccount() {
+  window.clearTimeout(pushTimer);
+  await deleteAccountRemote();
+  useAccount.setState({ status: 'signedOut', email: null, userId: null, sync: 'idle', lastSynced: null });
+}
+
 export async function deleteCloudData() {
   const { userId } = useAccount.getState();
   if (!userId) return;
@@ -139,6 +146,8 @@ useStore.subscribe((s, prev) => {
   window.clearTimeout(pushTimer);
   pushTimer = window.setTimeout(push, 1500);
 });
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') window.addEventListener('online', () => void push());
 
 if (typeof document !== 'undefined')
   document.addEventListener('visibilitychange', () => {

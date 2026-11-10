@@ -40,5 +40,7 @@ export async function decodeShare(code: string): Promise<MonthInput> {
 }
 
 export function shareLink(code: string): string {
-  return `${location.origin}${location.pathname}#share-${code}`;
+  // the iPhone app's own address isn't reachable from outside, so app links point at the website
+  const base = /^https?:/.test(location.protocol) ? `${location.origin}${location.pathname}` : 'https://mitchmoneyy.github.io/MonthLens/';
+  return `${base}#share-${code}`;
 }

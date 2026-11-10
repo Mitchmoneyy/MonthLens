@@ -4,15 +4,11 @@ import path from 'node:path';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const dist = path.join(root, 'dist');
 const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
-const css = [...html.matchAll(/href="\.\/(assets\/[^"]+\.css)"/g)].map((m) => fs.readFileSync(path.join(dist, m[1]), 'utf8')).join('\n');
+const css = [...html.matchAll(/href="\.\/(assets\/[^"]+\.css)"/g)].map((m) => fs.readFileSync(path.join(dist, m[1]), 'utf8').replace(/url\(\.\//g, 'url(./assets/')).join('\n');
 const js = html.match(/src="\.\/(assets\/index-[^"]+\.js)"/)[1];
-const fonts = html.match(/<link rel="stylesheet" href="(https:\/\/fonts[^"]+)"/)[1];
 const page = `<title>MonthLens</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A plain-English monthly business review for online business owners.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${fonts}">
 <style>${css}</style>
 <div id="root"></div>
 <script type="module" src="${js}"></script>
@@ -23,7 +19,8 @@ const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
   const p = path.join(d, e.name);
   if (e.isDirectory()) return walk(p);
   const rel = path.relative(dist, p);
-  if (rel === 'index.html' || rel === 'artifact.html' || rel.endsWith('.css') || rel.endsWith('.map')) return;
+  // the offline worker and manifest only apply to the standalone web app
+  if (rel === 'index.html' || rel === 'artifact.html' || rel.endsWith('.css') || rel.endsWith('.map') || rel === 'sw.js' || rel.startsWith('workbox-') || rel === 'manifest.webmanifest') return;
   files[rel] = rel.endsWith('.mjs') ? { from: rel, contentType: 'text/javascript' }  : rel;
 });
 walk(dist);
