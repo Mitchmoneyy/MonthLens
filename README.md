@@ -40,6 +40,7 @@ The anon key is meant to be public; row-level security in the schema is what kee
 | `src/lib/chat.ts` | Advisor chat. Local rule engine, plus Claude when running as a claude.ai artifact (with a `run_scenario` tool backed by `calc.ts`). |
 | `src/lib/export.ts` | PDF (jsPDF) and CSV built from the same review object as the screen. |
 | `src/lib/cloud.ts`, `src/lib/sync.ts`, `src/account.ts` | Optional accounts: Supabase auth, one JSON row per user, merge rules (saved months are never dropped). |
+| `src/lib/creators.ts`, `src/pages/Creators.tsx` | UGC creators: roster, per-creator stats (post count, best post, median/average views, engagement, cost per 1K views), profile-screenshot and post-export readers. |
 | `src/lib/share.ts` | Share codes: compressed month data, `[A-Za-z0-9-]` only. |
 | `public/ocr/` | tesseract.js worker, core and English data, served locally. |
 | `public/photos/` | Black-and-white photos from the Start Bootstrap theme library (MIT), originally via Unsplash. |

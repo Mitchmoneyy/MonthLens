@@ -210,6 +210,30 @@ try {
   await page.getByTestId('focus-image').scrollIntoViewIfNeeded();
   ok('Extra. Landing focus image renders', await page.getByTestId('focus-image').locator('img').count() === 1);
 
+  // creators
+  await page.goto(BASE + '#creators');
+  await page.getByTestId('creator-detail').waitFor();
+  const detail = await page.getByTestId('creator-detail').innerText();
+  ok('Creators: sample roster shows best post and stats', /Rain test/.test(detail) && /142,000 views/.test(detail), detail.split('\n')[0]);
+  await page.click('#add-creator');
+  await page.fill('#cr-name', 'Rivera');
+  await page.click('#cr-save');
+  {
+    const shot = await ctx.newPage();
+    await shot.setViewportSize({ width: 680, height: 560 });
+    await shot.goto('file://' + path.join(root, 'e2e-fixtures/tiktok-profile.html'));
+    await shot.screenshot({ path: path.join(root, 'e2e-fixtures/tiktok-profile.png') });
+    await shot.close();
+  }
+  await page.setInputFiles('#scan-shot', path.join(root, 'e2e-fixtures/tiktok-profile.png'));
+  await page.getByTestId('creator-found').waitFor({ timeout: 90000 });
+  const found = await page.getByTestId('creator-found').innerText();
+  ok('Creators: screenshot scan reads handle, followers and grid views', /rivera\.reviews/.test(found) && /63,500/.test(found) && /311,000/.test(found), found.replace(/\s+/g, ' ').slice(0, 160));
+  await page.click('#creator-apply');
+  await page.waitForTimeout(300);
+  const d2 = await page.getByTestId('creator-detail').innerText();
+  ok('Creators: approved scan becomes stats', /311,000 views/.test(d2) && /@rivera\.reviews/.test(d2), d2.split('\n').slice(0, 2).join(' | '));
+
   ok('No page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
 } catch (e) {

@@ -17,11 +17,12 @@ export interface SyncedData {
   scenarioA: unknown;
   scenarioB: unknown;
   thumbs: Record<string, string>;
+  creators?: unknown[];
   /** ms since epoch of the last local change */
   changedAt: number;
 }
 
-export const SYNCED_KEYS = ['profile', 'input', 'snapshots', 'planDone', 'scenarioA', 'scenarioB', 'thumbs'] as const;
+export const SYNCED_KEYS = ['profile', 'input', 'snapshots', 'planDone', 'scenarioA', 'scenarioB', 'thumbs', 'creators'] as const;
 
 const snapKey = (s: Snapshot) => `${s.input.businessType}|${s.month}|${s.input.isSample ? 's' : 'r'}`;
 

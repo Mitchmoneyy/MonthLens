@@ -13,6 +13,7 @@ const BANNERS: Partial<Record<string, [string, string]>> = {
   advisor: ['pencils', 'Plan the next 30 days'],
   history: ['print', 'Month after month'],
   account: ['phone', 'Your months on every device'],
+  creators: ['device', 'The people behind your ads'],
 };
 import Onboarding from './pages/Onboarding';
 import Overview from './pages/Overview';
@@ -21,16 +22,18 @@ import Ads from './pages/Ads';
 import Advisor from './pages/Advisor';
 import History from './pages/History';
 import Account from './pages/Account';
+import Creators from './pages/Creators';
 import { useAccount } from './account';
 import { decodeShare } from './lib/share';
 import type { MonthInput } from './lib/types';
 import { BUSINESS_TYPES } from './lib/fields';
 
-export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history' | 'account';
+export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history' | 'account' | 'creators';
 const APP_TABS: { key: Route; label: string; short: string }[] = [
   { key: 'overview', label: 'Overview', short: 'Overview' },
   { key: 'import', label: 'Import', short: 'Import' },
   { key: 'ads', label: 'Ads', short: 'Ads' },
+  { key: 'creators', label: 'Creators', short: 'Creators' },
   { key: 'advisor', label: 'Next month', short: 'Plan' },
   { key: 'history', label: 'History', short: 'History' },
 ];
@@ -38,7 +41,7 @@ const APP_TABS: { key: Route; label: string; short: string }[] = [
 function readRoute(): { route: Route; share: string | null } {
   const h = location.hash.replace(/^#/, '');
   if (h.startsWith('share-')) return { route: 'overview', share: h.slice(6) };
-  const r = (['home', 'start', 'overview', 'import', 'ads', 'advisor', 'history', 'account'] as Route[]).find((x) => x === h);
+  const r = (['home', 'start', 'overview', 'import', 'ads', 'advisor', 'history', 'account', 'creators'] as Route[]).find((x) => x === h);
   return { route: r ?? 'home', share: null };
 }
 
@@ -157,7 +160,7 @@ function SummaryBar({ route }: { route: Route }) {
 function BottomNav({ route }: { route: Route }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-surface sm:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }} aria-label="Sections">
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-6">
         {APP_TABS.map((t) => (
           <a key={t.key} href={'#' + t.key} aria-current={route === t.key ? 'page' : undefined} className={`flex flex-col items-center gap-1 py-2.5 text-[11px] ${route === t.key ? 'font-semibold text-ink' : 'text-mute'}`}>
             <span className={`h-1 w-6 rounded-full ${route === t.key ? 'bg-ink' : 'bg-transparent'}`} />
@@ -231,7 +234,7 @@ function Shell() {
     return () => window.removeEventListener('hashchange', on);
   }, []);
   useEffect(() => {
-    const titles: Record<Route, string> = { home: 'MonthLens', start: 'Set up · MonthLens', overview: 'Overview · MonthLens', import: 'Import · MonthLens', ads: 'Ads · MonthLens', advisor: 'Next month · MonthLens', history: 'History · MonthLens', account: 'Account · MonthLens' };
+    const titles: Record<Route, string> = { home: 'MonthLens', start: 'Set up · MonthLens', overview: 'Overview · MonthLens', import: 'Import · MonthLens', ads: 'Ads · MonthLens', advisor: 'Next month · MonthLens', history: 'History · MonthLens', account: 'Account · MonthLens', creators: 'Creators · MonthLens' };
     document.title = titles[route];
   }, [route]);
 
@@ -259,6 +262,7 @@ function Shell() {
         {route === 'advisor' && <Advisor />}
         {route === 'history' && <History />}
         {route === 'account' && <Account />}
+        {route === 'creators' && <Creators />}
       </main>
       <BottomNav route={route} />
     </div>

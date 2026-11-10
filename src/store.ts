@@ -4,6 +4,7 @@ import type { AdRow, BusinessType, FieldKey, MonthInput, NamedAmount, Scenario, 
 import type { Candidate } from './lib/parse/common';
 import { SAMPLES, blankMonth, samplePriorMonths } from './lib/samples';
 import { uid } from './lib/parse/common';
+import { SAMPLE_CREATORS, type Creator } from './lib/creators';
 
 export interface Profile {
   businessType: BusinessType;
@@ -33,6 +34,10 @@ interface State {
   thumbs: Partial<Record<string, string>>;
   /** last time synced data changed on this device (ms) */
   changedAt: number;
+  creators: Creator[];
+  saveCreator: (c: Creator) => void;
+  removeCreator: (id: string) => void;
+  clearSampleCreators: () => void;
   setProfile: (p: Partial<Profile>) => void;
   loadSample: (t: BusinessType) => void;
   startReal: () => void;
@@ -103,6 +108,13 @@ export const useStore = create<State>()(
       chat: [],
       thumbs: {},
       changedAt: 0,
+      creators: SAMPLE_CREATORS,
+      saveCreator: (c) => {
+        const list = get().creators;
+        set({ creators: list.some((x) => x.id === c.id) ? list.map((x) => (x.id === c.id ? c : x)) : [...list, c] });
+      },
+      removeCreator: (id) => set({ creators: get().creators.filter((x) => x.id !== id) }),
+      clearSampleCreators: () => set({ creators: get().creators.filter((x) => !x.isSample) }),
       setProfile: (p) => set({ profile: { ...get().profile, ...p } }),
       loadSample: (t) => set({ input: { ...SAMPLES[t], goal: get().profile.goal ?? SAMPLES[t].goal }, whatIf: {}, chat: [] }),
       startReal: () => {
@@ -158,6 +170,7 @@ export const useStore = create<State>()(
           scenarioB: null,
           chat: [],
           thumbs: {},
+          creators: SAMPLE_CREATORS,
         });
       },
       saveSnapshot: (label) => {
