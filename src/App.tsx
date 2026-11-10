@@ -12,6 +12,7 @@ const BANNERS: Partial<Record<string, [string, string]>> = {
   ads: ['cameras', 'Every format, side by side'],
   advisor: ['pencils', 'Plan the next 30 days'],
   history: ['print', 'Month after month'],
+  account: ['phone', 'Your months on every device'],
 };
 import Onboarding from './pages/Onboarding';
 import Overview from './pages/Overview';
@@ -19,11 +20,13 @@ import Import from './pages/Import';
 import Ads from './pages/Ads';
 import Advisor from './pages/Advisor';
 import History from './pages/History';
+import Account from './pages/Account';
+import { useAccount } from './account';
 import { decodeShare } from './lib/share';
 import type { MonthInput } from './lib/types';
 import { BUSINESS_TYPES } from './lib/fields';
 
-export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history';
+export type Route = 'home' | 'start' | 'overview' | 'import' | 'ads' | 'advisor' | 'history' | 'account';
 const APP_TABS: { key: Route; label: string; short: string }[] = [
   { key: 'overview', label: 'Overview', short: 'Overview' },
   { key: 'import', label: 'Import', short: 'Import' },
@@ -35,7 +38,7 @@ const APP_TABS: { key: Route; label: string; short: string }[] = [
 function readRoute(): { route: Route; share: string | null } {
   const h = location.hash.replace(/^#/, '');
   if (h.startsWith('share-')) return { route: 'overview', share: h.slice(6) };
-  const r = (['home', 'start', 'overview', 'import', 'ads', 'advisor', 'history'] as Route[]).find((x) => x === h);
+  const r = (['home', 'start', 'overview', 'import', 'ads', 'advisor', 'history', 'account'] as Route[]).find((x) => x === h);
   return { route: r ?? 'home', share: null };
 }
 
@@ -66,6 +69,30 @@ function useTheme() {
     if (theme === 'system') el.removeAttribute('data-theme');
     else el.setAttribute('data-theme', theme);
   }, [theme]);
+}
+
+/** Top-bar account entry: "Sign in", or the account's initial with sync state. */
+export function AccountButton({ light = false }: { light?: boolean }) {
+  const a = useAccount();
+  if (a.availability !== 'ready') return null;
+  const signedIn = a.status === 'signedIn';
+  return (
+    <a
+      href="#account"
+      id="account-button"
+      className={`flex h-9 items-center gap-2 rounded-[3px] border px-3 text-xs font-semibold ${light ? 'border-ink/30 hover:border-ink' : 'border-current/30 opacity-90 hover:opacity-100'}`}
+      aria-label={signedIn ? `Account: ${a.email}. ${a.sync === 'error' ? 'Not synced.' : 'Synced.'}` : 'Sign in or create an account'}
+    >
+      {signedIn ? (
+        <>
+          <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${light ? 'bg-inv text-invink' : 'bg-invink text-inv'}`}>{(a.email ?? '?')[0].toUpperCase()}</span>
+          <span className="hidden sm:inline">{a.sync === 'syncing' ? 'Syncing…' : a.sync === 'error' ? 'Not synced' : 'Synced'}</span>
+        </>
+      ) : (
+        'Sign in'
+      )}
+    </a>
+  );
 }
 
 export function ThemeToggle() {
@@ -106,6 +133,7 @@ function SummaryBar({ route }: { route: Route }) {
           <span className="rounded-[3px] border border-current/40 px-2 py-0.5 font-mono text-[11px]">{review.health.score ?? '—'}</span>
           <span className="max-w-[12rem] truncate text-xs opacity-80">{review.health.verdict}</span>
         </div>
+        <AccountButton />
         <ThemeToggle />
       </div>
       <nav className="hidden border-t border-current/15 sm:block" aria-label="Sections">
@@ -203,7 +231,7 @@ function Shell() {
     return () => window.removeEventListener('hashchange', on);
   }, []);
   useEffect(() => {
-    const titles: Record<Route, string> = { home: 'MonthLens', start: 'Set up · MonthLens', overview: 'Overview · MonthLens', import: 'Import · MonthLens', ads: 'Ads · MonthLens', advisor: 'Next month · MonthLens', history: 'History · MonthLens' };
+    const titles: Record<Route, string> = { home: 'MonthLens', start: 'Set up · MonthLens', overview: 'Overview · MonthLens', import: 'Import · MonthLens', ads: 'Ads · MonthLens', advisor: 'Next month · MonthLens', history: 'History · MonthLens', account: 'Account · MonthLens' };
     document.title = titles[route];
   }, [route]);
 
@@ -230,6 +258,7 @@ function Shell() {
         {route === 'ads' && <Ads />}
         {route === 'advisor' && <Advisor />}
         {route === 'history' && <History />}
+        {route === 'account' && <Account />}
       </main>
       <BottomNav route={route} />
     </div>

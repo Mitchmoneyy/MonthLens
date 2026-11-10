@@ -31,6 +31,8 @@ interface State {
   theme: 'system' | 'light' | 'dark';
   chat: ChatMsg[];
   thumbs: Partial<Record<string, string>>;
+  /** last time synced data changed on this device (ms) */
+  changedAt: number;
   setProfile: (p: Partial<Profile>) => void;
   loadSample: (t: BusinessType) => void;
   startReal: () => void;
@@ -100,6 +102,7 @@ export const useStore = create<State>()(
       theme: 'system',
       chat: [],
       thumbs: {},
+      changedAt: 0,
       setProfile: (p) => set({ profile: { ...get().profile, ...p } }),
       loadSample: (t) => set({ input: { ...SAMPLES[t], goal: get().profile.goal ?? SAMPLES[t].goal }, whatIf: {}, chat: [] }),
       startReal: () => {

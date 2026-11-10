@@ -30,8 +30,6 @@ export interface Metric {
 export const ASSUMPTIONS = {
   /** extra budget moved into a format earns this share of its current ROAS (diminishing returns) */
   shiftEfficiency: 0.75,
-  /** ad-attributed revenue moves in line with spend when spend changes */
-  linearAdResponse: true,
 };
 
 const n = (v: number | null | undefined): number | null => (v === undefined || v === null || Number.isNaN(v) ? null : v);
@@ -449,8 +447,6 @@ function changeAdSpend(x: MonthInput, rows: AdRow[], factor: number) {
 export function applyScenario(base: MonthInput, s: Scenario): MonthInput {
   const x = clone(base);
   const v = x.values;
-  const contribRate = computeReview(base).m.contributionRate.value;
-
   if (s.cutFormats?.length) {
     for (const fmt of s.cutFormats) {
       const rows = x.ads.filter((a) => a.format === fmt);
@@ -542,7 +538,6 @@ export function applyScenario(base: MonthInput, s: Scenario): MonthInput {
   if (s.softwarePct && v.software != null) v.software *= 1 + s.softwarePct;
   if (s.fixedPct) for (const k of ['software', 'contractors', 'otherExpenses'] as FieldKey[]) if (v[k] != null) v[k] = (v[k] as number) * (1 + s.fixedPct);
 
-  void contribRate;
   x.isSample = base.isSample;
   return x;
 }

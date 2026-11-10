@@ -1,7 +1,7 @@
 import type { Recommendation, Review } from './calc';
 import { monthName } from './calc';
 import { BUSINESS_TYPES } from './fields';
-import { count, fmtUnit, money, pct, ratio } from './format';
+import { fmtUnit, money, pct, ratio } from './format';
 
 /** The rows shared by the PDF, the CSV and the on-screen P&L. One source of truth. */
 export function summaryRows(r: Review): { section: string; label: string; value: string; raw: number | null; formula: string }[] {
@@ -158,4 +158,3 @@ export async function toPdf(r: Review, recs: Recommendation[], projected: number
   return doc.output('blob');
 }
 
-export { count };

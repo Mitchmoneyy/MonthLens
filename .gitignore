@@ -4,3 +4,5 @@ e2e-fixtures/*.png
 e2e-fixtures/*.pdf
 *.log
 .DS_Store
+dist-acct/
+.env.local

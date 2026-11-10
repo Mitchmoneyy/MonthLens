@@ -3,7 +3,7 @@ import { PhotoStrip, photo } from '../components/PhotoStrip';
 import { ScrollStory } from '../components/ScrollStory';
 import { FocusImage } from '../components/FocusImage';
 import { Button, CountUp, LensDial, Reveal, Slider } from '../components/ui';
-import { ThemeToggle, go } from '../App';
+import { AccountButton, ThemeToggle, go } from '../App';
 import { applyScenario, computeReview, recommend } from '../lib/calc';
 import { money, pct, ratio } from '../lib/format';
 import { SAMPLES } from '../lib/samples';
@@ -108,6 +108,7 @@ export default function Landing() {
           Month<span className="font-normal italic">Lens</span>
         </span>
         <div className="flex items-center gap-2">
+          <AccountButton light />
           <ThemeToggle />
           {onboarded && (
             <Button variant="secondary" onClick={() => go('overview')}>
@@ -174,7 +175,7 @@ export default function Landing() {
       </section>
 
       <section aria-label="Bring last month into focus" className="mb-16 sm:mb-24">
-        <FocusImage src={photo('flatlay')} alt="Wallet, phone, watch and headphones laid out on a dark table" before="Last month, as you remember it." after="Last month, in focus." />
+        <FocusImage src={photo('city')} alt="Downtown skyscrapers seen from directly above" before="Last month, as you remember it." after="Last month, in focus." />
       </section>
 
       <section className="gutter mx-auto max-w-6xl pb-16 sm:pb-24">
