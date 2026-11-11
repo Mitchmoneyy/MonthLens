@@ -1,4 +1,5 @@
 import type { MonthInput } from './types';
+import { SITE_URL } from './site';
 
 /** Share codes: the month's input as compressed JSON, encoded with [A-Za-z0-9-] only. */
 const PREFIX = 'ML1';
@@ -41,6 +42,6 @@ export async function decodeShare(code: string): Promise<MonthInput> {
 
 export function shareLink(code: string): string {
   // the iPhone app's own address isn't reachable from outside, so app links point at the website
-  const base = /^https?:/.test(location.protocol) ? `${location.origin}${location.pathname}` : 'https://mitchmoneyy.github.io/MonthLens/';
+  const base = /^https?:/.test(location.protocol) ? `${location.origin}${location.pathname}` : SITE_URL;
   return `${base}#share-${code}`;
 }

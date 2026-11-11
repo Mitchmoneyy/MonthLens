@@ -327,7 +327,7 @@ function FileTab({ addItems }: { addItems: (c: Candidate[], batch: string, scrol
   const result = useMemo(() => {
     if (!loaded) return null;
     if (loaded.table) {
-      const r = tableCandidates(loaded.table, loaded.roles, loaded.kind, loaded.source);
+      const r = tableCandidates(loaded.table, loaded.roles, loaded.kind, loaded.source, loaded.name);
       if (!r.candidates.length && loaded.kind === 'generic') {
         const t = extractFromText(tableAsText(loaded.table), loaded.source);
         return { candidates: t.candidates, summary: t.candidates.length ? `${t.candidates.length} labelled values found` : r.summary };

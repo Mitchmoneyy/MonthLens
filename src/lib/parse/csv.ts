@@ -6,7 +6,7 @@
  */
 import Papa from 'papaparse';
 import type { AdPlatform, FieldKey, Source } from '../types';
-import { type Candidate, inferFormat, inferPlatform, parseNumber, PLATFORM_SPEND_FIELD, uid } from './common';
+import { type Candidate, inferFormat, inferPlatform, namedPlatform, parseNumber, PLATFORM_SPEND_FIELD, uid } from './common';
 
 export type Role =
   | 'ignore'
@@ -152,8 +152,11 @@ export function detectKind(headers: string[], roles: Role[]): TableKind {
   const hn = headers.map(norm).join(' | ');
   if (has('impressions') || (has('spend') && (has('clicks') || has('adName') || has('campaign')))) return 'ads';
   if (/lineitem|financial status|fulfillment status/.test(hn)) return 'shopify-orders';
+  // One row per payment (PayPal, Stripe): a fee column next to a type or status column.
+  // Checked before sales reports, because PayPal also has "Gross" and a date.
+  if (/amount refunded|reporting category|balance transaction|payment intent|card brand|transaction id/.test(hn) || (has('fee') && (has('amount') || has('gross')) && (has('status') || has('type')))) return 'payments';
   if (has('gross') && (has('orders') || has('date'))) return 'store-sales';
-  if (/amount refunded|reporting category|balance transaction|payment intent|card brand/.test(hn) || (has('fee') && (has('amount') || has('gross')))) return 'payments';
+  if (has('fee') && (has('amount') || has('gross'))) return 'payments';
   if (has('description') && (has('amount') || has('debit') || has('credit'))) return 'bank';
   return 'generic';
 }
@@ -172,7 +175,7 @@ const BANK_RULES: [FieldKey, RegExp][] = [
 const sumOf = (xs: (number | null)[]) => xs.reduce<number>((s, x) => s + (x ?? 0), 0);
 
 /** Turn a mapped table into candidates. */
-export function tableCandidates(table: Table, roles: Role[], kind: TableKind, source: Source): { candidates: Candidate[]; summary: string } {
+export function tableCandidates(table: Table, roles: Role[], kind: TableKind, source: Source, fileName = ''): { candidates: Candidate[]; summary: string } {
   const col = (r: Role) => roles.indexOf(r);
   const cell = (row: string[], r: Role) => (col(r) >= 0 ? row[col(r)] ?? '' : '');
   const num = (row: string[], r: Role) => parseNumber(cell(row, r));
@@ -187,7 +190,8 @@ export function tableCandidates(table: Table, roles: Role[], kind: TableKind, so
       const spend = num(r, 'spend');
       if (spend === null) continue;
       const name = cell(r, 'adName') || cell(r, 'campaign') || 'Ad';
-      const platform: AdPlatform = (inferPlatform(cell(r, 'platform')) as AdPlatform) || headerPlatform || 'Other';
+      // platform: its own column, then a platform named in the ad, campaign or file name, then the header wording
+      const platform: AdPlatform = (inferPlatform(cell(r, 'platform')) as AdPlatform) || namedPlatform(`${name} ${cell(r, 'campaign')}`) || namedPlatform(fileName) || headerPlatform || 'Other';
       let format = cell(r, 'format') ? inferFormat(cell(r, 'format')) : inferFormat(`${name} ${cell(r, 'campaign')} ${cell(r, 'type')}`);
       // Google rows with no other hint are almost always search ads
       if (format === 'Other' && (platform === 'Google' || platform === 'Microsoft')) format = 'Search Text';
@@ -253,7 +257,7 @@ export function tableCandidates(table: Table, roles: Role[], kind: TableKind, so
     const amountRole: Role = col('amount') >= 0 ? 'amount' : 'gross';
     const isRefundRow = (r: string[]) => /refund|chargeback|dispute/i.test(cell(r, 'type'));
     const okRow = (r: string[]) => !cell(r, 'status') || /paid|succeeded|success|complete|available|settled/i.test(cell(r, 'status'));
-    const charges = rows.filter((r) => okRow(r) && !isRefundRow(r) && !/payout|transfer|adjustment/i.test(cell(r, 'type')) && (num(r, amountRole) ?? 0) > 0);
+    const charges = rows.filter((r) => okRow(r) && !isRefundRow(r) && !/payout|transfer|adjustment|withdrawal|currency conversion/i.test(cell(r, 'type')) && (num(r, amountRole) ?? 0) > 0);
     const gross = sumOf(charges.map((r) => num(r, amountRole)));
     const refunds = col('refund') >= 0 ? sumOf(rows.map((r) => num(r, 'refund'))) : Math.abs(sumOf(rows.filter(isRefundRow).map((r) => num(r, amountRole))));
     const fees = Math.abs(sumOf(rows.filter(okRow).map((r) => num(r, 'fee'))));

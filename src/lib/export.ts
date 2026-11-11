@@ -154,7 +154,7 @@ export async function toPdf(r: Review, recs: Recommendation[], projected: number
   doc.setFont('helvetica', 'bold').setFontSize(11).setTextColor(0).text(`If you do the top 3, projected profit next month is ${money(projected)}.`, L, y);
   y += 22;
   doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(120);
-  doc.text(doc.splitTextToSize('All figures computed in your browser from the numbers you provided. Missing inputs are shown as "Not provided". Projections use the assumptions listed in the app. Benchmarks are rough estimates, not live data.', R - L), L, y);
+  doc.text(doc.splitTextToSize('All figures computed in your browser from the numbers you provided. Missing inputs are shown as "Not provided". Projections use the assumptions listed in the app. Benchmarks are rough estimates, not live data. Not financial, tax or accounting advice.', R - L), L, y);
   return doc.output('blob');
 }
 

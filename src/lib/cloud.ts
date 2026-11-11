@@ -6,6 +6,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SyncedData } from './sync';
+import { SITE_URL } from './site';
 
 const URL_ = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -20,7 +21,7 @@ export function availability(): CloudAvailability {
   return 'ready';
 }
 
-export const WEB_APP_URL = 'https://mitchmoneyy.github.io/MonthLens/';
+export const WEB_APP_URL = SITE_URL;
 
 let clientPromise: Promise<SupabaseClient> | null = null;
 export function client(): Promise<SupabaseClient> {
@@ -103,6 +104,14 @@ export async function loadRemote(userId: string): Promise<SyncedData | null> {
 export async function saveRemote(userId: string, payload: SyncedData) {
   const sb = await client();
   const { error } = await sb.from('workspaces').upsert({ user_id: userId, data: payload, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+
+/** Send a note to the site owner. Stored in the `feedback` table; the app can write to it but not read it. */
+export async function sendFeedback(message: string, contact: string, page: string) {
+  const sb = await client();
+  const { data } = await sb.auth.getSession();
+  const { error } = await sb.from('feedback').insert({ message: message.trim().slice(0, 4000), contact: contact.trim().slice(0, 200) || null, page: page.slice(0, 60), user_id: data.session?.user.id ?? null });
   if (error) throw error;
 }
 

@@ -1,13 +1,82 @@
+import { useState } from 'react';
 import { ThemeToggle } from '../App';
+import { Button } from '../components/ui';
+import { availability, sendFeedback } from '../lib/cloud';
+import { ISSUES_URL, SUPPORT_EMAIL } from '../lib/site';
 
-const SUPPORT_URL = 'https://github.com/Mitchmoneyy/MonthLens/issues';
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="border-t border-line pt-6">
+    <section className="border-t border-line pt-6" id={id}>
       <h2 className="text-2xl font-bold">{title}</h2>
       <div className="mt-3 space-y-3 text-[15.5px] leading-relaxed">{children}</div>
     </section>
+  );
+}
+
+/** A note to the people who run MonthLens. Stored where only they can read it. */
+function Feedback() {
+  const [message, setMessage] = useState('');
+  const [contact, setContact] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
+  const canSend = availability() === 'ready';
+
+  const fallback = (
+    <p>
+      {SUPPORT_EMAIL ? (
+        <>
+          Email <span className="select-all font-mono text-sm">{SUPPORT_EMAIL}</span>, or open
+        </>
+      ) : (
+        'Open'
+      )}{' '}
+      an issue at{' '}
+      <a href={ISSUES_URL} target="_blank" rel="noreferrer" className="break-all underline">
+        {ISSUES_URL.replace('https://', '')}
+      </a>
+      .
+    </p>
+  );
+  if (!canSend) return fallback;
+  if (state === 'sent')
+    return (
+      <p role="status" className="border-l-2 border-ink pl-3 font-semibold" data-testid="feedback-sent">
+        Sent. Thank you, every note gets read.
+      </p>
+    );
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (message.trim().length < 5) return;
+        setState('sending');
+        try {
+          await sendFeedback(message, contact, location.hash.replace('#', '') || 'home');
+          setState('sent');
+        } catch {
+          setState('failed');
+        }
+      }}
+    >
+      <label htmlFor="fb-message" className="block">
+        <span className="text-sm font-medium">What’s working, what’s broken, what’s missing?</span>
+        <textarea id="fb-message" required minLength={5} maxLength={4000} rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 block w-full rounded-[3px] border border-line bg-surface p-3 text-base outline-none focus:border-ink" />
+      </label>
+      <label htmlFor="fb-contact" className="block">
+        <span className="text-sm font-medium">Email, if you’d like a reply (optional)</span>
+        <input id="fb-contact" type="email" maxLength={200} autoComplete="email" value={contact} onChange={(e) => setContact(e.target.value)} className="mt-1 block w-full rounded-[3px] border border-line bg-surface px-3 py-2.5 text-base outline-none focus:border-ink" />
+      </label>
+      <Button type="submit" id="fb-send" disabled={state === 'sending' || message.trim().length < 5}>
+        {state === 'sending' ? 'Sending…' : 'Send feedback'}
+      </Button>
+      {state === 'failed' && (
+        <div role="status" className="border-l-2 border-ink pl-3 text-sm">
+          <p className="font-semibold">That didn’t send. Your note is still in the box above.</p>
+          {fallback}
+        </div>
+      )}
+      <p className="text-xs text-mute">Only your note, the optional email, and which page you were on are sent. None of your business numbers.</p>
+    </form>
   );
 }
 
@@ -22,8 +91,8 @@ export default function Privacy() {
       </header>
       <main className="gutter mx-auto max-w-3xl space-y-8 pb-20 pt-6">
         <div>
-          <div className="eyebrow">Last updated November 10, 2026</div>
-          <h1 className="display mt-2 text-4xl sm:text-5xl">Privacy & support</h1>
+          <div className="eyebrow">Last updated November 11, 2026</div>
+          <h1 className="display mt-2 text-4xl sm:text-5xl">Privacy, terms & support</h1>
           <p className="mt-4 text-lg text-mute">MonthLens is built so your business numbers stay with you. Short version: no ads, no tracking, no selling data, and the account is optional.</p>
         </div>
 
@@ -56,12 +125,18 @@ export default function Privacy() {
           <p>Your account: Account → “Delete my account”. This removes your login and everything stored with it, immediately.</p>
         </Section>
 
-        <Section title="Support">
-          <p>Questions, problems or requests: open an issue at</p>
-          <p className="select-all break-all font-mono text-sm">{SUPPORT_URL}</p>
-          <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className="inline-block rounded-[3px] bg-inv px-5 py-2.5 text-sm font-semibold text-invink">
-            Get support
-          </a>
+        <Section title="Terms of use" id="terms">
+          <p>
+            <span className="font-semibold">MonthLens is a calculator, not an adviser.</span> Its figures, projections, rankings and benchmarks are estimates based on the numbers you give it. They are not financial, tax, accounting or legal advice. Check important decisions with a qualified professional.
+          </p>
+          <p>Results are only as accurate as what you enter or approve. Projections state their assumptions next to the number; real results will differ. Benchmarks are rough estimates, not industry data.</p>
+          <p>MonthLens is provided as it is, without warranties. To the extent the law allows, we aren’t liable for losses that come from relying on it.</p>
+          <p>Use it for your own business or your clients’, lawfully. Don’t try to break it, overload it, or access anyone else’s data.</p>
+          <p>If these terms or the privacy details change, the date at the top of this page changes with them.</p>
+        </Section>
+
+        <Section title="Support & feedback" id="support">
+          <Feedback />
         </Section>
       </main>
     </div>

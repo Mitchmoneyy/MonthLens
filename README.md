@@ -39,6 +39,14 @@ Until this is done the Account page explains that accounts aren't switched on, a
 
 `node scripts/e2e-account.mjs` tests sign-up, sign-in, sync between two devices and sign-out against a fake Supabase.
 
+## Site address, feedback and monitoring
+
+- **Site address:** `VITE_SITE_URL` in `.env` is the one place the public address lives (share links, emailed links, social preview). To move to a custom domain, change it, add `public/CNAME`, and update the Site URL in Supabase.
+- **Feedback:** the Privacy, terms & support page has a feedback form that writes to a `feedback` table (in `supabase/schema.sql`). The app can write to it but not read it; read it in the Supabase dashboard.
+- **Live check:** `node scripts/live-check.mjs` opens the live site in a browser and confirms it loads, calculates, and reaches the account server. It runs after every deploy and daily (`.github/workflows/live-check.yml`).
+- **Email templates:** branded sign-up, reset and sign-in emails are in `supabase/email-templates/`.
+- **Launch checklist:** [`docs/LAUNCH.md`](docs/LAUNCH.md).
+
 ## iPhone & iPad app (App Store)
 
 The iOS app wraps the same build as the website with [Capacitor](https://capacitorjs.com) (`ios/`). PDF/CSV exports use the iOS share sheet, the status bar follows the theme, buttons give a light haptic tap, and the app opens straight into the review.

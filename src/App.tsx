@@ -396,6 +396,15 @@ function Shell() {
           </div>
         </Suspense>
       </main>
+      <footer className="gutter mx-auto mt-16 flex max-w-6xl flex-wrap gap-x-6 gap-y-2 border-t border-line pt-5 text-xs text-mute">
+        <span>Estimates from your numbers, not financial advice.</span>
+        <a href="#privacy" className="underline underline-offset-2 hover:text-ink">
+          Privacy, terms & support
+        </a>
+        <a href="#privacy" id="send-feedback" className="underline underline-offset-2 hover:text-ink" onClick={() => setTimeout(() => document.getElementById('support')?.scrollIntoView(), 400)}>
+          Send feedback
+        </a>
+      </footer>
       <BottomNav route={route} />
     </div>
   );

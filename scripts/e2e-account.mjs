@@ -16,6 +16,7 @@ const ok = (n, p, d = '') => (results.push(p), console.log(`${p ? 'PASS' : 'FAIL
 // --- fake backend state
 const users = new Map(); // email -> {id, password}
 const rows = new Map(); // user_id -> data
+const feedback = [];
 const session = (u) => ({ access_token: 'tok-' + u.id, token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'r-' + u.id, user: { id: u.id, email: u.email, aud: 'authenticated', role: 'authenticated', identities: [{ id: u.id }], app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } });
 const json = (route, status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
 async function fake(route) {
@@ -42,6 +43,12 @@ async function fake(route) {
     for (const [email, u] of users) if (u.id === uid) users.delete(email);
     rows.delete(uid);
     return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+  }
+  if (url.pathname === '/rest/v1/feedback' && req.method() === 'POST') {
+    const r = Array.isArray(body) ? body[0] : body;
+    if (!r.message || r.message.length < 5) return json(route, 400, { message: 'check constraint' });
+    feedback.push(r);
+    return json(route, 201, []);
   }
   if (url.pathname === '/rest/v1/workspaces') {
     const uid = uidFromAuth();
@@ -134,6 +141,16 @@ try {
   await p2.click('#acct-signout');
   await p2.locator('#acct-submit').waitFor();
   ok('Sign out returns to the sign-in form, data stays in the browser', (await p2.evaluate(() => JSON.parse(localStorage.getItem('monthlens.v1')).state.snapshots.length)) === 1);
+  // feedback form: signed in on the laptop, signed out on a fresh browser
+  await p1.goto(BASE + '#overview');
+  await p1.click('#send-feedback');
+  await p1.fill('#fb-message', 'The import read my Shopify export perfectly.');
+  await p1.click('#fb-send');
+  await p1.getByTestId('feedback-sent').waitFor();
+  ok('Feedback form sends a note, tagged with the account', feedback.length === 1 && feedback[0].user_id === 'u1' && /Shopify/.test(feedback[0].message), JSON.stringify(Object.keys(feedback[0] ?? {})));
+  const leaked = JSON.stringify(feedback[0]);
+  ok('Feedback carries no business numbers', !/grossRevenue|snapshots|48200/.test(leaked));
+
   // delete the account from the laptop (App Store requirement)
   await p1.goto(BASE + '#account');
   await p1.getByTestId('acct-email').waitFor();

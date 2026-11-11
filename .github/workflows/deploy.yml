@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # pull requests (including automatic dependency updates) run every check but never deploy
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -46,12 +48,15 @@ jobs:
           node scripts/a11y.mjs
           node scripts/e2e-account.mjs
       - uses: actions/configure-pages@v5
+        if: github.event_name != 'pull_request'
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           path: dist
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

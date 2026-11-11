@@ -446,7 +446,7 @@ try {
     const fontOk = await pg.evaluate(() => document.fonts.check('700 40px "Bodoni Moda Variable"') && [...document.fonts].some((f) => f.family.includes('Bodoni') && f.status === 'loaded'));
     ok('Bundled fonts load', fontOk);
     await pg.goto(BASE + '#privacy');
-    ok('Privacy & support page', (await pg.locator('h1').innerText()).includes('Privacy') && (await pg.locator('text=Delete my account').count()) > 0);
+    ok('Privacy & support page', (await pg.locator('h1').innerText()).includes('Privacy') && (await pg.locator('text=Delete my account').count()) > 0 && (await pg.locator('text=not financial, tax').count()) > 0);
     await c.close();
   }
 

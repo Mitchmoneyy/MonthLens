@@ -234,7 +234,7 @@ function SignedIn() {
         )}
         <p className="mt-3 text-xs text-mute">
           <a href="#privacy" className="underline">
-            Privacy & support
+            Privacy, terms & support
           </a>
         </p>
       </div>

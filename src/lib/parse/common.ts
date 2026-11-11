@@ -80,6 +80,21 @@ export function inferPlatform(text: string): AdPlatform | null {
   return null;
 }
 
+/** Only an explicit platform name counts here (for ad names, campaign names and file names). */
+export function namedPlatform(text: string): AdPlatform | null {
+  const t = text.toLowerCase();
+  if (/tiktok/.test(t)) return 'TikTok';
+  if (/pinterest/.test(t)) return 'Pinterest';
+  if (/snapchat/.test(t)) return 'Snapchat';
+  if (/linkedin/.test(t)) return 'LinkedIn';
+  if (/reddit/.test(t)) return 'Reddit';
+  if (/microsoft|\bbing\b/.test(t)) return 'Microsoft';
+  if (/amazon/.test(t)) return 'Amazon';
+  if (/facebook|instagram|\bmeta\b/.test(t)) return 'Meta';
+  if (/google|youtube|adwords/.test(t)) return 'Google';
+  return null;
+}
+
 /** Channel spend field for each platform. Platforms without their own field roll into "Other ad platforms". */
 export const PLATFORM_SPEND_FIELD: Record<AdPlatform, FieldKey> = {
   Meta: 'adSpendMeta',

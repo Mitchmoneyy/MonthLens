@@ -255,7 +255,7 @@ export default function Landing() {
 
       <footer className="gutter mx-auto flex max-w-6xl flex-wrap justify-between gap-3 py-8 text-xs text-mute">
         <span>
-          Your data stays on your device unless you share it. <a href="#privacy" className="underline">Privacy & support</a>
+          Your data stays on your device unless you share it. <a href="#privacy" className="underline">Privacy, terms & support</a>
         </span>
         <span>Photography from Unsplash.</span>
       </footer>

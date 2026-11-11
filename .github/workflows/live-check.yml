@@ -1,0 +1,33 @@
+name: Live site check
+
+# Opens the live site in a real browser after every deploy and once a day: it loads, the sample
+# month calculates, and the account server answers. GitHub emails the repo owner if it fails.
+# It creates no accounts and sends no email.
+
+on:
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
+  schedule:
+    - cron: '17 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm i --no-save playwright@1.48.2
+          npx playwright install chromium
+      - name: Read the site address
+        run: echo "SITE_URL=$(grep '^VITE_SITE_URL=' .env | cut -d= -f2)" >> "$GITHUB_ENV"
+      # give GitHub Pages a moment to serve the new version after a deploy
+      - if: github.event_name == 'workflow_run'
+        run: sleep 45
+      - run: node scripts/live-check.mjs "$SITE_URL"
