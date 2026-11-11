@@ -83,9 +83,9 @@ export const SOURCE_GUIDE: Record<string, { bring: string; gives: string; field:
 };
 
 export const BUSINESS_TYPES: { key: BusinessType; label: string; blurb: string; photo: string }[] = [
-  { key: 'ecommerce', label: 'E-commerce', blurb: 'Physical products, Shopify or similar', photo: 'flatlay' },
+  { key: 'ecommerce', label: 'E-commerce', blurb: 'Physical products, Shopify or similar', photo: 'shop' },
   { key: 'saas', label: 'SaaS / Subscription', blurb: 'Recurring software or memberships', photo: 'code' },
-  { key: 'course', label: 'Course / Digital product', blurb: 'Courses, templates, ebooks', photo: 'desk' },
-  { key: 'agency', label: 'Agency / Services', blurb: 'Client work, retainers, freelancing', photo: 'studio' },
-  { key: 'creator', label: 'Creator', blurb: 'Sponsors, memberships, affiliates', photo: 'cameras' },
+  { key: 'course', label: 'Course / Digital product', blurb: 'Courses, templates, ebooks', photo: 'course' },
+  { key: 'agency', label: 'Agency / Services', blurb: 'Client work, retainers, freelancing', photo: 'team' },
+  { key: 'creator', label: 'Creator', blurb: 'Sponsors, memberships, affiliates', photo: 'creator' },
 ];

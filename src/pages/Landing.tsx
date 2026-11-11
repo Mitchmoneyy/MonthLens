@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { PhotoStrip, photo } from '../components/PhotoStrip';
+import { PhotoStrip, photo, photoSet } from '../components/PhotoStrip';
 import { ScrollStory } from '../components/ScrollStory';
 import { FocusImage } from '../components/FocusImage';
 import { InstallButton } from '../components/InstallApp';
@@ -11,18 +11,18 @@ import { SAMPLES } from '../lib/samples';
 import { useStore } from '../store';
 
 const STRIP = [
-  { src: photo('flatlay', true), caption: 'E-commerce' },
+  { src: photo('shop', true), caption: 'E-commerce' },
   { src: photo('code', true), caption: 'SaaS' },
-  { src: photo('desk', true), caption: 'Courses' },
-  { src: photo('studio', true), caption: 'Agencies' },
-  { src: photo('cameras', true), caption: 'Creators' },
-  { src: photo('brand', true), caption: 'Brand studios' },
-  { src: photo('phone', true), caption: 'Services' },
-  { src: photo('print', true), caption: 'Print shops' },
-  { src: photo('tools', true), caption: 'Makers' },
-  { src: photo('device', true), caption: 'Apps' },
-  { src: photo('travel', true), caption: 'Guides' },
-  { src: photo('pencils', true), caption: 'Stationery' },
+  { src: photo('course', true), caption: 'Courses' },
+  { src: photo('team', true), caption: 'Agencies' },
+  { src: photo('creator', true), caption: 'Creators' },
+  { src: photo('open', true), caption: 'Shops' },
+  { src: photo('warehouse', true), caption: 'Fulfilment' },
+  { src: photo('meeting', true), caption: 'Consultants' },
+  { src: photo('typing', true), caption: 'Freelancers' },
+  { src: photo('store', true), caption: 'Retail' },
+  { src: photo('highfive', true), caption: 'Small teams' },
+  { src: photo('checklist', true), caption: 'Planners' },
 ];
 
 function TryIt() {
@@ -143,7 +143,7 @@ export default function Landing() {
           <p className="mt-6 font-mono text-xs text-mute">No account · Works offline · Computer and phone</p>
         </div>
         <div className="relative">
-          <img src={photo('typing')} alt="Hands typing on a laptop at a clean desk" fetchPriority="high" decoding="async" className="photo aspect-[4/5] w-full max-w-full object-cover md:aspect-[4/5]" />
+          <img src={photo('hero')} srcSet={photoSet('hero')} sizes="(min-width: 768px) 45vw, 100vw" alt="A founder in a suit buttoning his jacket" fetchPriority="high" decoding="async" className="photo aspect-[4/5] w-full max-w-full object-cover md:aspect-[4/5]" />
           <div className="absolute -bottom-6 left-4 right-4 border border-ink bg-surface p-4 sm:left-auto sm:right-[-12px] sm:w-72">
             <div className="flex items-center justify-between">
               <span className="eyebrow">Sample · October</span>
@@ -180,7 +180,7 @@ export default function Landing() {
       </section>
 
       <section aria-label="Bring last month into focus" className="mb-16 sm:mb-24">
-        <FocusImage src={photo('city')} alt="Downtown skyscrapers seen from directly above" before="Last month, as you remember it." after="Last month, in focus." />
+        <FocusImage src={photo('city')} srcSet={photoSet('city')} alt="Glass skyscrapers seen from the street, looking up" before="Last month, as you remember it." after="Last month, in focus." />
       </section>
 
       <section className="gutter mx-auto max-w-6xl pb-16 sm:pb-24">
@@ -220,7 +220,7 @@ export default function Landing() {
 
       <section className="gutter mx-auto grid max-w-6xl items-center gap-10 pb-16 sm:pb-24 md:grid-cols-2">
         <Reveal>
-          <img src={photo('desk')} alt="Open notebook, phone and laptop on a desk" loading="lazy" decoding="async" className="photo aspect-[4/3] w-full max-w-full object-cover" />
+          <img src={photo('paperwork')} srcSet={photoSet('paperwork')} sizes="(min-width: 768px) 50vw, 100vw" alt="Hands sorting receipts and forms beside a calculator" loading="lazy" decoding="async" className="photo aspect-[4/3] w-full max-w-full object-cover" />
         </Reveal>
         <Reveal>
           <h2 className="display text-3xl sm:text-4xl">Bring the numbers the way you have them.</h2>
@@ -257,7 +257,7 @@ export default function Landing() {
         <span>
           Your data stays on your device unless you share it. <a href="#privacy" className="underline">Privacy & support</a>
         </span>
-        <span>Photography: Start Bootstrap theme library (MIT), originally via Unsplash.</span>
+        <span>Photography from Unsplash.</span>
       </footer>
     </div>
   );

@@ -298,6 +298,10 @@ try {
     await pg.click('nav a[href="#ads"]');
     await pg.waitForTimeout(400);
     ok('Switching tabs starts at the top', (await pg.evaluate(() => scrollY)) === 0);
+    await pg.evaluate(() => scrollTo(0, 900));
+    await pg.click('nav a[href="#advisor"]');
+    await pg.waitForTimeout(900);
+    ok('The Next month tab opens at the top (chat does not pull the page down)', (await pg.evaluate(() => scrollY)) === 0);
     await pg.goto(BASE + '#import');
     await pg.getByRole('button', { name: 'Start a blank month' }).click();
     const list = await pg.getByTestId('source-checklist').innerText();

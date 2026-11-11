@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { reducedMotion } from './ui';
 
-/** `small` is a 640px version for thumbnails, cards and the strip. */
-export const photo = (name: string, small = false) => `./photos/${small ? 'sm/' : ''}${name}.jpg`;
+/** Every photo ships at 700, 1400 and 2400px wide. `small` picks the 700px file for thumbnails, cards and the strip. */
+export const photo = (name: string, small = false) => `./photos/${name}-${small ? 700 : 1400}.webp`;
+/** All three sizes, for the browser to choose from based on screen size and sharpness. */
+export const photoSet = (name: string) => [700, 1400, 2400].map((w) => `./photos/${name}-${w}.webp ${w}w`).join(', ');
 
 export interface StripItem {
   src: string;

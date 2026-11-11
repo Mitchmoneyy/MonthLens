@@ -245,7 +245,9 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
   const [streaming, setStreaming] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // scroll the message list itself, never the page (that used to yank the whole tab down on load)
+    const list = endRef.current?.parentElement;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [chat.length, streaming]);
 
   // which engine answers here: Claude inside claude.ai, built-in rules everywhere else

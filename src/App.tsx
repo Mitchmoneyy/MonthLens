@@ -7,13 +7,13 @@ import Landing from './pages/Landing';
 import { PageBanner } from './components/PageBanner';
 
 const BANNERS: Partial<Record<string, [string, string]>> = {
-  overview: ['desk', 'The month on one page'],
-  import: ['travel', 'Bring the receipts'],
-  ads: ['cameras', 'Every format, side by side'],
-  advisor: ['pencils', 'Plan the next 30 days'],
-  history: ['print', 'Month after month'],
-  account: ['phone', 'Your months on every device'],
-  creators: ['device', 'The people behind your ads'],
+  overview: ['dashboard', 'The month on one page'],
+  import: ['charts', 'Bring the receipts'],
+  ads: ['analytics', 'Every format, side by side'],
+  advisor: ['checklist', 'Plan the next 30 days'],
+  history: ['calendar', 'Month after month'],
+  account: ['devices', 'Your months on every device'],
+  creators: ['clapper', 'The people behind your ads'],
 };
 // Each tab is its own chunk: the landing page loads only what it shows.
 const pages = {
@@ -383,7 +383,7 @@ function Shell() {
       <main id="main" tabIndex={-1} className="gutter mx-auto max-w-6xl pt-6 outline-none sm:pt-8" key={route}>
         {route === 'overview' && <InstallBanner />}
         {route === 'overview' && <AccountNudge />}
-        <PageBanner name={BANNERS[route]?.[0] ?? 'desk'} caption={BANNERS[route]?.[1] ?? ''} />
+        <PageBanner name={BANNERS[route]?.[0] ?? 'dashboard'} caption={BANNERS[route]?.[1] ?? ''} />
         <Suspense fallback={<PageLoading />}>
           <div className="rise">
             {route === 'overview' && <Overview />}

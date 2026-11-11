@@ -48,15 +48,17 @@ export default defineConfig({
       },
       workbox: {
         // the app shell, code and photos work offline from the first visit
-        globPatterns: ['**/*.{js,mjs,css,html,png,jpg,woff2,webmanifest}'],
+        globPatterns: ['**/*.{js,mjs,css,html,png,webp,woff2,webmanifest}'],
         // Not pre-downloaded: the OCR engine (fetched on first scan), font subsets for scripts the
         // interface doesn't use, and jsPDF's HTML-rendering helpers, which the report never calls.
-        globIgnores: ['ocr/**', 'artifact*.html', '**/*cyrillic*', '**/*-math-*', '**/*-symbols-*', '**/html2canvas*', '**/purify*', '**/index.es-*'],
+        globIgnores: ['ocr/**', 'artifact*.html', 'photos/*-1400.webp', 'photos/*-2400.webp', '**/*cyrillic*', '**/*-math-*', '**/*-symbols-*', '**/html2canvas*', '**/purify*', '**/index.es-*'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           // OCR engine and language data (~14 MB): fetched the first time someone scans, then kept
+          // small photos are pre-downloaded; the larger sizes are kept after first view
+          { urlPattern: ({ url }) => url.pathname.includes('/photos/'), handler: 'CacheFirst', options: { cacheName: 'monthlens-photos', expiration: { maxEntries: 60 } } },
           { urlPattern: ({ url }) => url.pathname.includes('/ocr/'), handler: 'CacheFirst', options: { cacheName: 'monthlens-ocr', expiration: { maxEntries: 10 } } },
         ],
       },

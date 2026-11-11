@@ -60,7 +60,7 @@ On a Mac you can also run `npm run ios:sync && npm run ios:open` and build from 
 | `src/lib/creators.ts`, `src/pages/Creators.tsx` | UGC creators: roster, per-creator stats (post count, best post, median/average views, engagement, cost per 1K views), profile-screenshot and post-export readers. |
 | `src/lib/share.ts` | Share codes: compressed month data, `[A-Za-z0-9-]` only. |
 | `public/ocr/` | tesseract.js worker, core and English data, served locally. |
-| `public/photos/` | Black-and-white photos from the Start Bootstrap theme library (MIT), originally via Unsplash. |
+| `public/photos/` | Black-and-white photos from Unsplash (Unsplash License), each at 700, 1400 and 2400px as WebP. Sources in `CREDITS.md`. |
 | `scripts/artifact.mjs` | Packages `dist/` as a claude.ai artifact page. |
 
 ## Rules the code follows
