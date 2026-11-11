@@ -263,9 +263,35 @@ export default function Account() {
           </a>
         </div>
       ) : a.availability === 'not-configured' ? (
-        <div className="max-w-xl border border-dashed border-ink bg-surface p-6" data-testid="acct-not-configured">
-          <p className="font-semibold">Accounts aren’t switched on for this copy yet.</p>
-          <p className="mt-2 text-sm text-mute">Everything else works, and your numbers are saved in this browser. Once the account server is connected, you’ll be able to sign up here and sync between devices.</p>
+        <div className="grid gap-px border border-ink bg-ink md:grid-cols-[1fr_1.1fr]" data-testid="acct-not-configured">
+          <div className="bg-inv p-6 text-invink sm:p-8">
+            <h2 className="text-3xl font-bold">Your months, on every device.</h2>
+            <ul className="mt-6 space-y-3 text-sm opacity-85">
+              <li>Create an account with an email and password.</li>
+              <li>Saved months, plans and creators sync between your computer and phone.</li>
+              <li>Only you can read your data, and you can delete the account at any time.</li>
+            </ul>
+          </div>
+          <div className="space-y-4 bg-surface p-6 sm:p-8">
+            <p className="text-lg font-semibold">Accounts aren’t switched on yet.</p>
+            <p className="text-sm text-mute">Until they are, everything still works and your numbers are saved on this device. Use History → “Back up everything” to keep a copy.</p>
+            <details className="border-t border-line pt-4 text-sm">
+              <summary className="cursor-pointer font-semibold">If you run this site: switch accounts on</summary>
+              <ol className="mt-3 list-decimal space-y-2 pl-5 text-mute">
+                <li>Create a free project at supabase.com.</li>
+                <li>
+                  In its SQL Editor, run the file <span className="font-mono text-xs">supabase/schema.sql</span> from this app’s code.
+                </li>
+                <li>Under Authentication → URL Configuration, set the Site URL to this site’s address.</li>
+                <li>
+                  Put the Project URL and the anon public key (Project Settings → API) in <span className="font-mono text-xs">.env.production</span>, then redeploy. Both are public values.
+                </li>
+              </ol>
+            </details>
+            <a href="#history" className="inline-block rounded-[3px] border border-ink px-5 py-2.5 text-sm font-semibold">
+              Back up my data
+            </a>
+          </div>
         </div>
       ) : a.recovery && a.status === 'signedIn' ? (
         <NewPassword />

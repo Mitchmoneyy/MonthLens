@@ -396,6 +396,33 @@ try {
     await c2.close();
   }
 
+  // first impressions: start screen for a blank month, plain-English summary, visible account entry
+  {
+    const c = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+    const pg = await c.newPage();
+    pg.on('pageerror', (e) => errors.push(e.message));
+    await pg.goto(BASE + '#overview');
+    const sum = await pg.getByTestId('summary').innerText();
+    ok('Overview opens with the month in plain English', /In October you kept \$12,340 of the \$48,200/.test(sum) && /change worth the most next month/.test(sum), sum.split('\n')[1]?.slice(0, 80));
+    await pg.click('#use-real');
+    await pg.goto(BASE + '#overview');
+    await pg.getByTestId('get-started').waitFor();
+    const notProvided = await pg.getByText('Not provided').count();
+    ok('A blank month shows a start screen, not a wall of “Not provided”', notProvided <= 1, `${notProvided} “Not provided” on screen`);
+    await pg.click('#start-questions');
+    await pg.waitForURL(/#import/);
+    await pg.locator('[role="tabpanel"] h3').waitFor();
+    await pg.fill('[role="tabpanel"] input', '9000');
+    await pg.click('#q-save');
+    await pg.goto(BASE + '#overview');
+    await pg.getByTestId('verdict').waitFor();
+    ok('The breakdown appears as soon as revenue is in', (await pg.getByTestId('get-started').count()) === 0);
+    await pg.click('#account-button');
+    await pg.getByTestId('acct-not-configured').waitFor();
+    ok('Account is always reachable and says plainly when it is not switched on', /aren’t switched on yet/.test(await pg.getByTestId('acct-not-configured').innerText()));
+    await c.close();
+  }
+
   // privacy page, and no requests to other servers (fonts are bundled)
   {
     const c = await browser.newContext();

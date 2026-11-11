@@ -31,9 +31,11 @@ Accounts sync saved months, plans and settings across devices. They use [Supabas
 2. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql). It creates one table where each user can only read and write their own row.
 3. In **Authentication → URL Configuration**, set **Site URL** to `https://mitchmoneyy.github.io/MonthLens/` and add it under **Redirect URLs**.
 4. In **Project Settings → API**, copy the **Project URL** and the **anon public** key.
-5. In this GitHub repo: **Settings → Secrets and variables → Actions → Variables**, add `SUPABASE_URL` and `SUPABASE_ANON_KEY`, then re-run the deploy.
+5. Copy `.env.production.example` to `.env.production`, paste the two values in, commit and push. The deploy picks them up. (Alternatively set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as GitHub Actions repository variables.)
 
-The anon key is meant to be public; row-level security in the schema is what keeps each account's data private. Locally, put the same two values in `.env.local` as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+Both values are public by design; row-level security in the schema is what keeps each account's data private. Never commit a `service_role` key. For local development, put the same two values in `.env.local`.
+
+Until this is done the Account page explains that accounts aren't switched on, and everything else works.
 
 `node scripts/e2e-account.mjs` tests sign-up, sign-in, sync between two devices and sign-out against a fake Supabase.
 

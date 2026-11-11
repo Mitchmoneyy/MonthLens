@@ -118,6 +118,51 @@ function useTheme() {
   }, [theme]);
 }
 
+/** Once there are real numbers worth keeping, offer an account (only where accounts are switched on). */
+function AccountNudge() {
+  const a = useAccount();
+  const isSample = useStore((s) => s.input.isSample);
+  const hasRevenue = useStore((s) => s.input.values.grossRevenue != null);
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem('monthlens.accountNudgeDismissed') === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (a.availability === 'ready' && a.status === 'idle') void import('./account').then((m) => m.startCloud());
+  }, [a.availability, a.status]);
+  if (hidden || a.availability !== 'ready' || a.status !== 'signedOut' || isSample || !hasRevenue) return null;
+  return (
+    <div className="rise mb-6 flex flex-col gap-3 border border-ink bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" data-testid="account-nudge">
+      <div>
+        <div className="font-semibold">Keep these numbers on every device</div>
+        <div className="text-sm text-mute">Right now they live only in this browser. A free account backs them up and syncs your phone and computer.</div>
+      </div>
+      <div className="flex items-center gap-2">
+        <a href="#account" id="nudge-create-account" className="rounded-[3px] bg-inv px-5 py-2.5 text-sm font-semibold text-invink">
+          Create account
+        </a>
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              localStorage.setItem('monthlens.accountNudgeDismissed', '1');
+            } catch {
+              /* fine */
+            }
+            setHidden(true);
+          }}
+          className="px-2 text-sm text-mute hover:text-ink"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function OfflineBadge() {
   const online = useInstall((s) => s.online);
   if (online) return null;
@@ -131,7 +176,6 @@ function OfflineBadge() {
 /** Top-bar account entry: "Sign in", or the account's initial with sync state. */
 export function AccountButton({ light = false }: { light?: boolean }) {
   const a = useAccount();
-  if (a.availability !== 'ready') return null;
   const signedIn = a.status === 'signedIn';
   return (
     <a
@@ -146,7 +190,13 @@ export function AccountButton({ light = false }: { light?: boolean }) {
           <span className="hidden sm:inline">{a.sync === 'syncing' ? 'Syncing…' : a.sync === 'error' ? 'Not synced' : 'Synced'}</span>
         </>
       ) : (
-        'Sign in'
+        <>
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
+            <circle cx="8" cy="5.2" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M2 14.5c.6-3 3-4.6 6-4.6s5.4 1.6 6 4.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+          <span className="hidden sm:inline">{a.availability === 'ready' ? 'Sign in' : 'Account'}</span>
+        </>
       )}
     </a>
   );
@@ -184,8 +234,8 @@ function SummaryBar({ route }: { route: Route }) {
         </label>
         <div className="ml-auto flex min-w-0 items-baseline gap-2 sm:gap-3" data-testid="sticky-profit">
           <span className="font-mono text-[10px] uppercase tracking-widest opacity-60">Profit</span>
-          <span className="display text-xl sm:text-2xl">{p === null ? <span className="text-sm font-normal opacity-60">Not provided</span> : <CountUp value={p} format={(x) => money(x)} />}</span>
-          <span className="hidden font-mono text-xs opacity-70 sm:inline">{pct(review.m.margin.value)}</span>
+          <span className="display text-xl sm:text-2xl">{p === null ? <span className="whitespace-nowrap font-sans text-xs font-normal opacity-70">Not provided</span> : <CountUp value={p} format={(x) => money(x)} />}</span>
+          {review.m.margin.value !== null && <span className="hidden font-mono text-xs opacity-70 sm:inline">{pct(review.m.margin.value)}</span>}
         </div>
         <div className="hidden items-center gap-2 lg:flex">
           <span className="rounded-[3px] border border-current/40 px-2 py-0.5 font-mono text-[11px]">{review.health.score ?? '—'}</span>
@@ -332,6 +382,7 @@ function Shell() {
       <UpdateBanner />
       <main id="main" tabIndex={-1} className="gutter mx-auto max-w-6xl pt-6 outline-none sm:pt-8" key={route}>
         {route === 'overview' && <InstallBanner />}
+        {route === 'overview' && <AccountNudge />}
         <PageBanner name={BANNERS[route]?.[0] ?? 'desk'} caption={BANNERS[route]?.[1] ?? ''} />
         <Suspense fallback={<PageLoading />}>
           <div className="rise">

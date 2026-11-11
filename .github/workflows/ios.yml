@@ -33,11 +33,15 @@ jobs:
       - run: npm ci
       - run: npm test
 
+      # Account config (public values) comes from .env.production in the repo, or from the
+      # SUPABASE_URL / SUPABASE_ANON_KEY repository variables if those are set.
       - name: Build the web app
-        run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          SB_URL: ${{ vars.SUPABASE_URL }}
+          SB_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$SB_URL" ]; then export VITE_SUPABASE_URL="$SB_URL" VITE_SUPABASE_ANON_KEY="$SB_KEY"; fi
+          npm run build
 
       - name: Copy it into the iOS project
         run: npx cap sync ios

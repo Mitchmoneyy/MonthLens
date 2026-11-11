@@ -8,6 +8,8 @@ import { BUSINESS_TYPES } from '../lib/fields';
 import { fmtUnit, money, pct } from '../lib/format';
 import { saveFile } from '../lib/runtime';
 import { nav, useStore } from '../store';
+import { monthSummary } from '../lib/narrative';
+import { GetStarted } from '../components/GetStarted';
 import { BreakEven } from '../components/tools/BreakEven';
 import { RunwayExplorer } from '../components/tools/RunwayExplorer';
 
@@ -83,6 +85,10 @@ export default function Overview() {
 
   const newRev = input.values.newCustomerRevenue ?? null;
   const retRev = input.values.returningCustomerRevenue ?? null;
+  const summary = monthSummary(r, pr, recs);
+
+  // A real month with no revenue yet: a start screen beats a page of "Not provided".
+  if (!input.isSample && gross === null) return <GetStarted month={monthName(input.month)} filled={Object.values(input.values).filter((v) => v != null).length} />;
 
   return (
     <div className="space-y-12 sm:space-y-16">
@@ -132,6 +138,16 @@ export default function Overview() {
             </Button>
           )}
         </div>
+        {summary.length > 0 && (
+          <div className="mb-8 max-w-3xl space-y-3 border-l-2 border-ink pl-4 sm:pl-6" data-testid="summary">
+            <div className="eyebrow">The short version</div>
+            {summary.map((t, i) => (
+              <p key={i} className={i === 0 ? 'text-xl font-semibold leading-snug sm:text-2xl' : 'text-base leading-relaxed sm:text-lg'}>
+                {t}
+              </p>
+            ))}
+          </div>
+        )}
         <div className="grid gap-px border border-ink bg-ink lg:grid-cols-[minmax(0,300px)_1fr]">
           <div className="flex flex-col items-center justify-center gap-3 bg-surface p-6 text-center">
             <LensDial score={r.health.score} size={176} />
@@ -140,6 +156,11 @@ export default function Overview() {
               <div className="mt-1 text-lg font-bold" data-testid="verdict">
                 {r.health.verdict}
               </div>
+              {recs[0] && (
+                <a href="#advisor" className="mt-2 block text-xs text-mute underline-offset-2 hover:text-ink hover:underline">
+                  Biggest lever: {recs[0].title.toLowerCase()}, <span className="num">+{money(recs[0].impact)}</span>/mo →
+                </a>
+              )}
             </div>
             <details className="w-full text-left text-xs text-mute">
               <summary className="cursor-pointer text-center">How it’s scored</summary>

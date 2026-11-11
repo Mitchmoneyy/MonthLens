@@ -72,6 +72,14 @@ try {
   await laptop.route(FAKE + '/**', fake);
   const p1 = await laptop.newPage();
   p1.on('pageerror', (e) => errors.push(e.message));
+  // real numbers + signed out → a prompt to create an account
+  await p1.goto(BASE + '#import');
+  await p1.getByRole('button', { name: 'Start a blank month' }).click();
+  await p1.click('#tab-manual');
+  await p1.fill('#m-grossRevenue', '5000');
+  await p1.goto(BASE + '#overview');
+  await p1.getByTestId('account-nudge').waitFor({ timeout: 8000 });
+  ok('With real numbers and no account, Overview offers to create one', true);
   await p1.goto(BASE + '#history');
   await p1.click('#save-snapshot');
   await p1.click('#account-button');
