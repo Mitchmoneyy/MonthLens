@@ -73,8 +73,8 @@ export default function Onboarding() {
           </a>
         </div>
       </header>
-      <div className="gutter mx-auto w-full max-w-5xl">
-        <ol className="grid grid-cols-4 gap-2" aria-label="Progress">
+      <nav className="gutter mx-auto w-full max-w-5xl" aria-label="Setup progress">
+        <ol className="grid grid-cols-4 gap-2">
           {steps.map((s, i) => (
             <li key={s}>
               <div className={`h-1 ${i <= step ? 'bg-ink' : 'bg-line'} transition-colors`} />
@@ -84,7 +84,7 @@ export default function Onboarding() {
             </li>
           ))}
         </ol>
-      </div>
+      </nav>
 
       <main className="gutter mx-auto w-full max-w-5xl flex-1 py-8 sm:py-12" key={step}>
         {building ? (

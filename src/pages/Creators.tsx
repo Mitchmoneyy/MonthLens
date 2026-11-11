@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useReviewData } from '../App';
-import { Button, NumberField, Pill, Reveal, SectionTitle, useToast } from '../components/ui';
+import { Button, NumberField, Pill, Reveal, SectionTitle, useToast, tabKeys } from '../components/ui';
 import { CREATOR_PLATFORMS, creatorInsights, creatorStats, newCreator, newPost, postsFromCsv, readProfileText, rosterLabels, type Creator, type CreatorPlatform, type CreatorPost, type CreatorStats } from '../lib/creators';
 import { count, money, pct, ratio } from '../lib/format';
 import { useStore } from '../store';
@@ -85,7 +85,7 @@ function Scan({ creator, onApply }: { creator: Creator; onApply: (c: Creator, n:
   const labels: Record<string, string> = { followers: 'Followers', profilePosts: 'Posts on profile', handle: 'Handle', platform: 'Platform' };
   return (
     <div className="border border-line bg-surface">
-      <div className="flex gap-4 border-b border-line px-4" role="tablist">
+      <div className="flex gap-4 border-b border-line px-4" role="tablist" onKeyDown={tabKeys}>
         {(
           [
             ['shot', 'Screenshot'],
@@ -220,7 +220,7 @@ function ViewsChart({ posts, best, onPick, picked }: { posts: CreatorPost[]; bes
   const avg = list.reduce((s, p) => s + p.views!, 0) / list.length;
   return (
     <div>
-      <div className="relative flex h-40 items-end gap-1 border-b border-ink" role="img" aria-label="Views per post">
+      <div className="relative flex h-40 items-end gap-1 border-b border-ink" role="group" aria-label="Views per post. Each bar is a post.">
         <div className="absolute inset-x-0 border-t border-dashed border-ink/60" style={{ bottom: `${(avg / max) * 100}%` }}>
           <span className="absolute -top-4 right-0 font-mono text-[10px] text-mute">avg {compact(avg)}</span>
         </div>
@@ -365,7 +365,7 @@ function CreatorDetail({ c, labels }: { c: Creator; labels: string[] }) {
           </div>
         </div>
         {showPosts && c.posts.length > 0 && (
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[820px] text-sm">
               <thead>
                 <tr className="eyebrow text-left">
@@ -464,7 +464,7 @@ export default function Creators() {
         <>
           <Reveal as="section">
             <SectionTitle eyebrow={`${list.length} creator${list.length === 1 ? '' : 's'}`} title="Side by side" />
-            <div className="mb-5 flex flex-wrap gap-1" role="tablist" aria-label="Compare by">
+            <div className="mb-5 flex flex-wrap gap-1" role="tablist" onKeyDown={tabKeys} aria-label="Compare by">
               {METRICS.map((x) => (
                 <button key={x.key} role="tab" aria-selected={metric === x.key} onClick={() => setMetric(x.key)} className={`rounded-[3px] border px-3 py-1.5 text-xs font-semibold ${metric === x.key ? 'border-inv bg-inv text-invink' : 'border-line hover:border-ink'}`}>
                   {x.label}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { deleteAccount, startCloud, syncNow, useAccount } from '../account';
-import { Button, useToast } from '../components/ui';
+import { Button, useToast, tabKeys } from '../components/ui';
 import { InstallButton } from '../components/InstallApp';
 import { emailLinksReturnHere, friendly, sendMagicLink, sendReset, setPassword, signIn, signOut, signUp, WEB_APP_URL } from '../lib/cloud';
 import { monthName } from '../lib/calc';
@@ -74,7 +74,7 @@ function SignedOut() {
         <p className="text-xs opacity-60">An account is optional. Everything works without one; your numbers just stay in this browser.</p>
       </div>
       <form onSubmit={submit} className="space-y-5 bg-surface p-6 sm:p-8" noValidate={false}>
-        <div className="flex gap-4 border-b border-line" role="tablist">
+        <div className="flex gap-4 border-b border-line" role="tablist" onKeyDown={tabKeys}>
           {(['create', 'signin'] as Mode[]).map((m) => (
             <button key={m} type="button" role="tab" id={`acct-tab-${m}`} aria-selected={mode === m} onClick={() => (setMode(m), setMsg(null))} className={`-mb-px border-b-2 pb-2 text-sm ${mode === m ? 'border-ink font-semibold' : 'border-transparent text-mute'}`}>
               {m === 'create' ? 'Create account' : 'Sign in'}

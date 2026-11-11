@@ -284,7 +284,7 @@ export default function Overview() {
       <Reveal as="section">
         <SectionTitle eyebrow="Where it went" title="Expenses" right={<MetricValue m={m.totalExpenses} className="num text-lg font-semibold" />} />
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[460px] text-sm">
               <thead>
                 <tr className="eyebrow text-left">
@@ -426,7 +426,7 @@ export default function Overview() {
           <summary className="cursor-pointer text-lg font-extrabold" style={{ fontFamily: 'var(--font-display)' }}>
             All formulas
           </summary>
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[560px] text-sm">
               <tbody>
                 {Object.values(m).map((x) => (

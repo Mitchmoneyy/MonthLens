@@ -122,3 +122,20 @@ describe('guided questions follow onboarding answers', () => {
     expect(questionOrder('saas', ['Meta'])).toContain('adSpendMeta');
   });
 });
+
+import { explainAiFailure } from '../chat';
+describe('AI failures are explained, never silent', () => {
+  it('timeouts and rate limits can be retried', () => {
+    expect(explainAiFailure('timeout')).toMatchObject({ retryable: true, disable: false });
+    expect(explainAiFailure('rate_limited').message).toMatch(/busy/);
+    expect(explainAiFailure('rate_limited').retryable).toBe(true);
+  });
+  it('a declined permission stops asking and says so', () => {
+    expect(explainAiFailure('not_granted')).toMatchObject({ retryable: false, disable: true });
+  });
+  it('unknown errors still get a plain message and a retry', () => {
+    const f = explainAiFailure(undefined);
+    expect(f.message).toMatch(/built-in rules/);
+    expect(f.retryable).toBe(true);
+  });
+});

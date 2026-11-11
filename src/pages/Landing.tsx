@@ -36,7 +36,7 @@ function TryIt() {
     <div className="grid gap-px overflow-hidden rounded-[3px] border border-ink bg-ink md:grid-cols-[1.1fr_1fr]">
       <div className="bg-surface p-6 sm:p-8">
         <div className="eyebrow">Try it · sample e-commerce month</div>
-        <h3 className="mt-2 text-2xl font-extrabold">Move a lever. Watch profit move.</h3>
+        <h2 className="mt-2 text-2xl font-extrabold">Move a lever. Watch profit move.</h2>
         <div className="mt-6 space-y-6">
           <Slider id="try-price" big label="Change prices" value={price} min={-10} max={20} step={1} onChange={setPrice} display={`${price > 0 ? '+' : ''}${price}%`} />
           <label className="flex cursor-pointer items-start gap-3">
@@ -119,6 +119,7 @@ export default function Landing() {
         </div>
       </header>
 
+      <main id="main">
       <section className="gutter mx-auto grid max-w-6xl items-center gap-10 pb-12 pt-4 md:grid-cols-[1.15fr_1fr] md:pt-10">
         <div className="rise">
           <div className="eyebrow">Monthly business review · for one-person businesses</div>
@@ -249,6 +250,8 @@ export default function Landing() {
           </button>
         </div>
       </section>
+
+      </main>
 
       <footer className="gutter mx-auto flex max-w-6xl flex-wrap justify-between gap-3 py-8 text-xs text-mute">
         <span>

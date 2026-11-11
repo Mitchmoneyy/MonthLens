@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { go, useReviewData } from '../App';
 import { Button, CountUp, Pill, Reveal, SectionTitle, Slider, useToast } from '../components/ui';
 import { applyScenario, BENCHMARKS, computeReview, monthName, nextMonth, tierOf, type Recommendation, type Review, type Tier } from '../lib/calc';
-import { CLAUDE_INSTRUCTIONS, claudeContext, localAnswer, runScenarioTool, SCENARIO_TOOL_SCHEMA } from '../lib/chat';
+import { CLAUDE_INSTRUCTIONS, claudeContext, explainAiFailure, localAnswer, runScenarioTool, SCENARIO_TOOL_SCHEMA } from '../lib/chat';
+
+const AI_TIMEOUT_MS = 45000;
 import { fmtUnit, money, pct } from '../lib/format';
 import { getSampler } from '../lib/runtime';
 import type { Scenario } from '../lib/types';
@@ -246,14 +248,32 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
     endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [chat.length, streaming]);
 
-  const ask = async (text: string) => {
+  // which engine answers here: Claude inside claude.ai, built-in rules everywhere else
+  const [engine, setEngine] = useState<'checking' | 'claude' | 'rules'>('checking');
+  const aiOff = useRef(false);
+  useEffect(() => {
+    let live = true;
+    getSampler().then((s) => live && setEngine(s ? 'claude' : 'rules'));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const ask = async (text: string, isRetry = false) => {
     if (!text.trim() || busy) return;
     setQ('');
-    push({ role: 'user', text });
+    if (!isRetry) push({ role: 'user', text });
     setBusy(true);
+    let failure: ReturnType<typeof explainAiFailure> | null = null;
     try {
-      const sampler = await getSampler();
+      const sampler = aiOff.current ? null : await getSampler();
       if (sampler) {
+        const abort = new AbortController();
+        let timedOut = false;
+        const timer = setTimeout(() => {
+          timedOut = true;
+          abort.abort();
+        }, AI_TIMEOUT_MS);
         try {
           const toolSources: { label: string; value: string }[] = [];
           const history = useStore.getState().chat.slice(-7, -1).map((m) => ({ role: m.role, content: m.text }));
@@ -261,6 +281,7 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
           const messages = [{ role: 'user', content: first }, { role: 'assistant', content: 'Understood. I will only use these numbers and run_scenario results, and cite each one.' }, ...history, { role: 'user', content: text }];
           const res = await sampler(messages, {
             cache: false,
+            signal: abort.signal,
             onText: ({ text: t }: { text: string }) => setStreaming(t),
             tools: [
               {
@@ -275,6 +296,7 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
               },
             ],
           });
+          if (!res?.text?.trim()) throw { code: 'empty_completion' };
           const cited: { label: string; value: string }[] = [];
           const clean = res.text.replace(/\[([^\]:]{2,40}):\s*([^\]]{1,30})\]/g, (_: string, l: string, v: string) => {
             if (!cited.some((c) => c.label === l.trim())) cited.push({ label: l.trim(), value: v.trim() });
@@ -282,12 +304,18 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
           });
           push({ role: 'assistant', text: clean, sources: [...cited, ...toolSources], via: 'claude' });
           return;
-        } catch {
-          /* fall back to the local engine below */
+        } catch (e: any) {
+          failure = explainAiFailure(timedOut ? 'timeout' : e?.code);
+          if (failure.disable) {
+            aiOff.current = true;
+            setEngine('rules');
+          }
+        } finally {
+          clearTimeout(timer);
         }
       }
       const a = localAnswer(text, r, recs);
-      push({ role: 'assistant', text: a.text, sources: a.sources, via: 'local' });
+      push({ role: 'assistant', text: a.text, sources: a.sources, via: 'local', notice: failure?.message, retry: failure?.retryable ? text : undefined });
     } finally {
       setStreaming(null);
       setBusy(false);
@@ -298,6 +326,11 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
     <div className="border border-ink bg-surface">
       <div className="max-h-[28rem] min-h-[10rem] space-y-4 overflow-y-auto p-4 sm:p-5" aria-live="polite">
         {chat.length === 0 && <p className="text-sm text-mute">Ask about this month. Answers use only the numbers on your screen, and every answer lists the figures it used.</p>}
+        {chat.length === 0 && engine !== 'checking' && (
+          <p className="font-mono text-[11px] text-mute" data-testid="chat-engine">
+            {engine === 'claude' ? 'Answers here come from Claude. It only sees this month’s numbers and your question.' : 'Answers here come from MonthLens’s built-in rules on this device. No AI model is involved, and nothing is sent anywhere.'}
+          </p>
+        )}
         {chat.map((m: ChatMsg, i) => (
           <div key={i} className={m.role === 'user' ? 'flex justify-end' : ''}>
             <div className={`max-w-[85%] whitespace-pre-line text-sm ${m.role === 'user' ? 'rounded-[3px] bg-inv px-4 py-2 text-invink' : ''}`}>
@@ -312,7 +345,17 @@ function Chat({ r, recs }: { r: Review; recs: Recommendation[] }) {
                   ))}
                 </div>
               )}
-              {m.via && <div className="mt-1 font-mono text-[10px] text-faint">{m.via === 'claude' ? 'Answered by Claude from your numbers' : 'Answered by MonthLens rules from your numbers'}</div>}
+              {m.notice && (
+                <div className="mt-2 border-l-2 border-ink pl-3 text-xs" role="status">
+                  {m.notice}{' '}
+                  {m.retry && i === chat.length - 1 && !busy && (
+                    <button type="button" onClick={() => ask(m.retry as string, true)} className="font-semibold underline">
+                      Try Claude again
+                    </button>
+                  )}
+                </div>
+              )}
+              {m.via && <div className="mt-1 font-mono text-[10px] text-mute">{m.via === 'claude' ? 'Answered by Claude, using only your numbers' : 'Answered by MonthLens’s built-in rules, from your numbers'}</div>}
             </div>
           </div>
         ))}

@@ -363,6 +363,39 @@ try {
     await c.close();
   }
 
+  // advisor: says which engine answers; an AI failure is explained and the built-in answer shown
+  {
+    const c = await browser.newContext({ serviceWorkers: 'block' });
+    const pg = await c.newPage();
+    await pg.goto(BASE + '#advisor');
+    const engine = await pg.getByTestId('chat-engine').innerText();
+    ok('Advisor says no AI model is involved on the website', /built-in rules/.test(engine) && /No AI model/.test(engine));
+    await c.close();
+    // inside claude.ai, with Claude rate-limited on the first try and working on the retry
+    const c2 = await browser.newContext({ serviceWorkers: 'block' });
+    await c2.addInitScript(() => {
+      let calls = 0;
+      const sample = async () => {
+        calls++;
+        if (calls === 1) throw { code: 'rate_limited', message: 'slow down' };
+        return { text: 'Profit was [Net profit: $12,340].', truncated: false };
+      };
+      window.claude = { use: async (name) => (name === 'sample' ? sample : null) };
+    });
+    const pg2 = await c2.newPage();
+    await pg2.goto(BASE + '#advisor');
+    await pg2.fill('#chat-input', 'Did I make money?');
+    await pg2.getByRole('button', { name: 'Ask', exact: true }).click();
+    await pg2.getByText('Try Claude again').waitFor();
+    const fallback = await pg2.locator('[role="status"]', { hasText: 'rate limit' }).innerText();
+    const stillAnswered = await pg2.getByText('net profit $12,340', { exact: false }).count();
+    ok('A rate-limited AI is explained and the built-in answer is shown', /busy right now/.test(fallback) && stillAnswered > 0, fallback.slice(0, 80));
+    await pg2.getByText('Try Claude again').click();
+    await pg2.getByText('Answered by Claude', { exact: false }).waitFor();
+    ok('Retry reaches Claude and cites its source', (await pg2.getByText('Net profit: $12,340').count()) > 0);
+    await c2.close();
+  }
+
   // privacy page, and no requests to other servers (fonts are bundled)
   {
     const c = await browser.newContext();

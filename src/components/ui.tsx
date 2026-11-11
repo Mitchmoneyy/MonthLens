@@ -3,6 +3,51 @@ import type { Metric, MetricUnit } from '../lib/calc';
 import { fmtUnit } from '../lib/format';
 import { tap } from '../native';
 
+/** Arrow keys move between tabs in a tab list (Left/Right, Home/End). */
+export function tabKeys(e: React.KeyboardEvent<HTMLElement>) {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+  const tabs = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')];
+  const at = tabs.indexOf(document.activeElement as HTMLElement);
+  if (at < 0) return;
+  e.preventDefault();
+  const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (at + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+  tabs[next].focus();
+  tabs[next].click();
+}
+
+/** Dialog behaviour: focus moves in, Tab stays inside, Escape closes, focus returns where it was. */
+export function useDialog(onClose: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    const before = document.activeElement as HTMLElement | null;
+    const focusables = () => [...(el?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])') ?? [])];
+    (focusables()[0] ?? el)?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return onClose();
+      if (e.key !== 'Tab') return;
+      const f = focusables();
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      before?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return ref;
+}
+
 export const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /** Number that counts from its previous value to the new one. */
@@ -219,19 +264,11 @@ export function SectionTitle({ eyebrow, title, right }: { eyebrow?: string; titl
 const FormulaCtx = createContext<(m: Metric) => void>(() => {});
 export const useFormula = () => useContext(FormulaCtx);
 
-export function FormulaProvider({ children }: { children: ReactNode }) {
-  const [m, setM] = useState<Metric | null>(null);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setM(null);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+function FormulaSheet({ m, onClose }: { m: Metric; onClose: () => void }) {
+  const ref = useDialog(onClose);
   return (
-    <FormulaCtx.Provider value={setM}>
-      {children}
-      {m && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setM(null)} role="dialog" aria-modal="true" aria-label={`${m.label} formula`}>
-          <div className="rise w-full max-w-md rounded-t-2xl border border-line bg-surface p-6 sm:rounded-[3px]" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }} onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${m.label} formula`}>
+          <div ref={ref} tabIndex={-1} className="rise w-full max-w-md border border-line bg-surface p-6 outline-none" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }} onClick={(e) => e.stopPropagation()}>
             <div className="eyebrow">How this is calculated</div>
             <h3 className="mt-1 text-2xl font-extrabold">{m.label}</h3>
             <div className="num mt-3 text-3xl font-semibold">{fmtUnit(m.value, m.unit)}</div>
@@ -250,15 +287,23 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
             {m.partial && !m.missing.length && <p className="mt-3 text-sm text-mute">Some optional lines were not provided and are counted as $0.</p>}
             <div className="mt-5 flex justify-end gap-2">
               {m.missing.length > 0 && (
-                <a href="#import" onClick={() => setM(null)} className="rounded-[3px] border border-ink px-4 py-2 text-sm font-semibold">
+                <a href="#import" onClick={() => onClose()} className="rounded-[3px] border border-ink px-4 py-2 text-sm font-semibold">
                   Add missing numbers
                 </a>
               )}
-              <Button onClick={() => setM(null)}>Close</Button>
+              <Button onClick={() => onClose()}>Close</Button>
             </div>
           </div>
         </div>
-      )}
+  );
+}
+
+export function FormulaProvider({ children }: { children: ReactNode }) {
+  const [m, setM] = useState<Metric | null>(null);
+  return (
+    <FormulaCtx.Provider value={setM}>
+      {children}
+      {m && <FormulaSheet m={m} onClose={() => setM(null)} />}
     </FormulaCtx.Provider>
   );
 }

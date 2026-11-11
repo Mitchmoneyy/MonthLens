@@ -325,9 +325,12 @@ function Shell() {
     return <Suspense fallback={<PageLoading />}>{route === 'start' ? <Onboarding /> : <Privacy />}</Suspense>;
   return (
     <div className="min-h-full pb-24 sm:pb-12">
+      <a href="#main" className="skip-link" onClick={(e) => (e.preventDefault(), document.getElementById('main')?.focus())}>
+        Skip to content
+      </a>
       <SummaryBar route={route} />
       <UpdateBanner />
-      <main className="gutter mx-auto max-w-6xl pt-6 sm:pt-8" key={route}>
+      <main id="main" tabIndex={-1} className="gutter mx-auto max-w-6xl pt-6 outline-none sm:pt-8" key={route}>
         {route === 'overview' && <InstallBanner />}
         <PageBanner name={BANNERS[route]?.[0] ?? 'desk'} caption={BANNERS[route]?.[1] ?? ''} />
         <Suspense fallback={<PageLoading />}>

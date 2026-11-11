@@ -1,6 +1,8 @@
 # MonthLens — audit and proposed roadmap
 
-Status: **proposed, awaiting approval.** Nothing in the roadmap has been built.
+Status: **Fixes and Refinements approved and built** (November 11, 2026). Expansions and the two larger restructures are not started and still need a decision.
+
+Done: Fixes 1–7 and Refinements 1, 2 (errors and loading), 3, 8, plus larger touch targets from 4. Fix 2 and Fix 3 were done without the data-model restructure. Not done: Refinement 7 (splitting the two largest files) and swipe between tabs.
 Audit date: November 10, 2026, at commit `fbf9bd9`.
 
 ## Audit

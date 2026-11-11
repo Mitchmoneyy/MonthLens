@@ -150,3 +150,43 @@ export function runScenarioTool(r: Review, s: Scenario) {
   const pick = (x: Review) => ({ netProfit: money(x.m.netProfit.value), revenue: money(x.m.revenue.value), adSpend: money(x.m.adSpend.value), margin: pct(x.m.margin.value), cac: money(x.m.cac.value) });
   return { before: pick(r), after: pick(after), assumptions: 'Ad-reported revenue moves in line with spend; price changes keep the same number of sales; conversion and churn changes scale revenue and variable costs.' };
 }
+
+// ---------------------------------------------------------------- when the AI can't answer
+
+export interface AiFailure {
+  /** what to tell the person */
+  message: string;
+  /** worth offering "try again" */
+  retryable: boolean;
+  /** stop asking the AI for the rest of this visit */
+  disable: boolean;
+}
+
+/** Turn an AI error into a plain explanation. The built-in rules always answer in its place. */
+export function explainAiFailure(code: string | undefined): AiFailure {
+  switch (code) {
+    case 'timeout':
+      return { message: 'Claude took too long to answer, so this came from MonthLens’s built-in rules.', retryable: true, disable: false };
+    case 'rate_limited':
+    case 'queue_overflow':
+      return { message: 'Claude is busy right now (rate limit), so this came from MonthLens’s built-in rules. Try again in a minute.', retryable: true, disable: false };
+    case 'empty_completion':
+    case 'invalid_json':
+    case 'upstream_error':
+      return { message: 'Claude’s reply didn’t come through properly, so this came from MonthLens’s built-in rules.', retryable: true, disable: false };
+    case 'refused':
+      return { message: 'Claude declined that question, so this came from MonthLens’s built-in rules.', retryable: false, disable: false };
+    case 'prompt_too_large':
+      return { message: 'That was too much for Claude in one go, so this came from MonthLens’s built-in rules. Try a shorter question.', retryable: false, disable: false };
+    case 'not_granted':
+    case 'sampling_disabled':
+    case 'capability_disabled':
+    case 'capability_removed':
+    case 'not_declared':
+      return { message: 'Claude isn’t allowed to answer on this page, so answers come from MonthLens’s built-in rules.', retryable: false, disable: true };
+    case 'session_expired':
+      return { message: 'Your Claude session expired, so this came from MonthLens’s built-in rules. Reload the page to use Claude again.', retryable: false, disable: true };
+    default:
+      return { message: 'Claude couldn’t answer just now, so this came from MonthLens’s built-in rules.', retryable: true, disable: false };
+  }
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { go, useReviewData } from '../App';
-import { Button, MetricValue, NumberField, Pill, Reveal, SectionTitle } from '../components/ui';
+import { Button, MetricValue, NumberField, Pill, Reveal, SectionTitle, tabKeys } from '../components/ui';
 import type { FormatStats } from '../lib/calc';
 import { count, money, pct, ratio } from '../lib/format';
 import { uid } from '../lib/parse/common';
@@ -58,7 +58,7 @@ function Chart({ formats }: { formats: FormatStats[] }) {
   const sorted = [...vals].sort((a, b) => (c.lowerBetter ? (a.v ?? Infinity) - (b.v ?? Infinity) : (b.v ?? -Infinity) - (a.v ?? -Infinity)));
   return (
     <div>
-      <div className="mb-5 flex flex-wrap gap-1" role="tablist" aria-label="Compare by">
+      <div className="mb-5 flex flex-wrap gap-1" role="tablist" onKeyDown={tabKeys} aria-label="Compare by">
         {CHARTS.map((x) => (
           <button key={x.key} role="tab" aria-selected={k === x.key} onClick={() => setK(x.key)} className={`rounded-[3px] border px-3 py-1.5 text-xs font-semibold ${k === x.key ? 'border-inv bg-inv text-invink' : 'border-line hover:border-ink'}`}>
             {x.label}
@@ -91,7 +91,7 @@ function RowsEditor() {
   const upd = (id: string, patch: Partial<AdRow>) => setAds(ads.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   return (
     <div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
         <table className="w-full min-w-[880px] text-sm">
           <thead>
             <tr className="eyebrow text-left">
@@ -275,7 +275,7 @@ export default function Ads() {
       {byPlatform.length > 0 && (
         <Reveal as="section">
           <SectionTitle eyebrow={`${byPlatform.length} platform${byPlatform.length > 1 ? 's' : ''}`} title="Spend by platform" />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="eyebrow text-right">
@@ -320,7 +320,7 @@ export default function Ads() {
 
       <Reveal as="section">
         <SectionTitle eyebrow={`Contribution rate ${pct(a.contributionRate)} · profit = revenue × rate − spend`} title="All formats" />
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
           <table className="w-full min-w-[980px] text-sm" data-testid="ads-table">
             <thead>
               <tr className="eyebrow text-right">

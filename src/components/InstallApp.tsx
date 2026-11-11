@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { installPlatform, promptInstall, useInstall } from '../install';
-import { Button, useToast } from './ui';
+import { Button, useDialog, useToast } from './ui';
 
 const DISMISS_KEY = 'monthlens.installDismissed';
 const dismissed = () => {
@@ -19,6 +19,7 @@ const ShareIcon = () => (
 );
 
 function Steps({ onClose }: { onClose: () => void }) {
+  const ref = useDialog(onClose);
   const p = installPlatform();
   const steps =
     p === 'ios'
@@ -34,7 +35,7 @@ function Steps({ onClose }: { onClose: () => void }) {
         : [<>Open this page in Chrome or Edge (computer or Android) or Safari (iPhone, iPad, Mac).</>, <>Use the browser’s Install or Add to Home Screen option.</>];
   return (
     <div className="fixed inset-0 z-[75] flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-label="Install MonthLens">
-      <div className="rise w-full max-w-md border border-line bg-surface p-6" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }} onClick={(e) => e.stopPropagation()}>
+      <div ref={ref} tabIndex={-1} className="rise w-full max-w-md border border-line bg-surface p-6 outline-none" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }} onClick={(e) => e.stopPropagation()}>
         <div className="eyebrow">Install</div>
         <h3 className="mt-1 text-2xl font-bold">Put MonthLens on your {p === 'mac-safari' ? 'Dock' : p === 'ios' ? 'home screen' : 'device'}</h3>
         <ol className="mt-4 space-y-3">

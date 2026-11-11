@@ -19,6 +19,10 @@ export interface ChatMsg {
   text: string;
   sources?: { label: string; value: string }[];
   via?: 'claude' | 'local';
+  /** why the AI didn't answer, when it was tried and failed */
+  notice?: string;
+  /** the question, kept so it can be retried with the AI */
+  retry?: string;
 }
 
 interface State {

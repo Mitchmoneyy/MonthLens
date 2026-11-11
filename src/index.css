@@ -14,7 +14,7 @@
   --raised: #e7e7e5;
   --ink: #0b0b0b;
   --mute: #5b5b5a;
-  --faint: #959594;
+  --faint: #6b6b69; /* 4.6:1 on the page background */
   --line: #d4d4d2;
   --inv: #0b0b0b;
   --invink: #fafafa;
@@ -27,7 +27,7 @@
     --raised: #1d1d1d;
     --ink: #ededeb;
     --mute: #a3a3a1;
-    --faint: #6d6d6b;
+    --faint: #8f8f8d;
     --line: #2a2a29;
     --inv: #ededeb;
     --invink: #0a0a0a;
@@ -40,7 +40,7 @@
   --raised: #1d1d1d;
   --ink: #ededeb;
   --mute: #a3a3a1;
-  --faint: #6d6d6b;
+  --faint: #8f8f8d;
   --line: #2a2a29;
   --inv: #ededeb;
   --invink: #0a0a0a;
@@ -174,9 +174,9 @@ input[type='range']:active::-webkit-slider-thumb {
 }
 
 /* scroll reveal: only elements that start off-screen get the pending state */
+/* slides up without dimming, so text keeps its contrast while waiting */
 .rv-pending {
-  opacity: 0.35;
-  transform: translateY(18px);
+  transform: translateY(22px);
 }
 .rv-in {
   transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -219,6 +219,28 @@ input[type='range']:active::-webkit-slider-thumb {
   .rv-pending {
     opacity: 1;
     transform: none;
+  }
+}
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  background: var(--inv);
+  color: var(--invink);
+  padding: 10px 16px;
+  font-weight: 600;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+}
+/* fingers need bigger targets than mouse pointers */
+@media (pointer: coarse) {
+  button[class*='rounded-[3px]'],
+  a[class*='rounded-[3px]'],
+  select {
+    min-height: 40px;
   }
 }
 .no-scrollbar::-webkit-scrollbar {

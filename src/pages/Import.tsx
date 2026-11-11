@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { go, monthMessage, useReviewData } from '../App';
-import { Button, NumberField, Pill, SectionTitle, Slider, useToast } from '../components/ui';
+import { Button, NumberField, Pill, SectionTitle, Slider, useToast, tabKeys } from '../components/ui';
 import { computeReview } from '../lib/calc';
 import { BUSINESS_TYPES, FIELD, FIELDS, questionOrder, SOURCE_GUIDE } from '../lib/fields';
 import { money, pct } from '../lib/format';
@@ -364,7 +364,7 @@ function FileTab({ addItems }: { addItems: (c: Candidate[], batch: string, scrol
             )}
           </div>
           {loaded.table ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
               <table className="min-w-full text-xs">
                 <thead>
                   <tr>
@@ -720,7 +720,7 @@ export default function Import() {
 
       {!input.isSample && <SourceChecklist />}
 
-      <div className="no-scrollbar mt-8 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
+      <div className="no-scrollbar mt-8 flex gap-1 overflow-x-auto border-b border-line" role="tablist" onKeyDown={tabKeys}>
         {TABS.map((t) => (
           <button key={t.key} id={`tab-${t.key}`} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)} className={`relative shrink-0 px-4 py-3 text-sm ${tab === t.key ? 'font-semibold' : 'text-mute hover:text-ink'}`}>
             {t.label}

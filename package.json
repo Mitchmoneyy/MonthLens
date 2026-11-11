@@ -12,7 +12,8 @@
     "ios:open": "cap open ios",
     "test:e2e": "node scripts/e2e.mjs",
     "test:accounts": "node scripts/e2e-account.mjs",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test:a11y": "node scripts/a11y.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",
@@ -41,6 +42,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "axe-core": "^4.10.2",
     "eslint": "^9.13.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "postcss": "^8.4.47",

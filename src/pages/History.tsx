@@ -20,7 +20,7 @@ function ProfitBars({ reviews }: { reviews: { label: string; r: Review; current:
   const H = 180;
   const zero = hasNeg ? H * 0.75 : H;
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
       <div className="flex min-w-max items-end gap-4 border-b border-ink pb-0" style={{ height: H + 4 }} role="img" aria-label="Revenue and profit by month">
         {reviews.map((x, i) => {
           const rev = revs[i];
@@ -116,7 +116,7 @@ export default function History() {
       {snapReviews.length > 0 && (
         <Reveal as="section">
           <SectionTitle eyebrow={`${snapReviews.length} saved`} title="Saved months" />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[640px] text-sm" data-testid="snapshots">
               <thead>
                 <tr className="eyebrow text-left">
@@ -182,7 +182,7 @@ export default function History() {
       <Reveal as="section">
         <SectionTitle eyebrow={prevReview ? `${monthName(prevReview.input.month)} → ${monthName(input.month)}${input.isSample ? ' · sample history' : ''}` : 'Needs a saved earlier month'} title="This month vs last month" />
         {prevReview ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="eyebrow text-right">
@@ -218,7 +218,7 @@ export default function History() {
       <Reveal as="section">
         <SectionTitle eyebrow="From the what-if panel" title="Scenario A vs B" />
         {scenarios.length > 1 ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Table. Scrolls sideways.">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="eyebrow text-right">

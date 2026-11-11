@@ -6,11 +6,18 @@ Static site. React + Vite + Tailwind. No backend, no account. Data lives in the 
 
 ```bash
 npm install
-npm run dev          # local dev server
-npm test             # unit tests for the calculation engine and parsers
-npm run build        # static site in dist/
-node scripts/e2e.mjs # acceptance tests in a real browser (needs Playwright + Chromium)
+npm run dev            # local dev server
+npm run lint           # ESLint
+npm test               # unit tests: calculations, parsers, sync, backup, creators
+npm run build          # static site in dist/
+npm run test:e2e       # acceptance + feature tests in a real browser (needs Playwright + Chromium)
+npm run test:accounts  # sign-up, two-device sync and account deletion against a stand-in server
+npm run test:a11y      # accessibility scan of every screen, phone and desktop, light and dark
 ```
+
+Every push to `main` runs the dependency audit, lint, unit tests, build and all three browser suites, and only deploys if they pass (`.github/workflows/deploy.yml`).
+
+No keys or secrets live in the code. Accounts are configured with two public values supplied as environment variables at build time; iOS signing uses GitHub secrets.
 
 ## Live site
 
