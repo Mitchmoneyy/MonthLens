@@ -8,7 +8,11 @@ import path from 'node:path';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const PORT = 4179;
 const BASE = `http://localhost:${PORT}/`;
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore' });
+// These tests cover the app with accounts switched off (scripts/e2e-account.mjs covers them on),
+// so build a separate copy with the account config blanked out.
+import { execSync } from 'node:child_process';
+execSync('npx vite build --outDir dist-test', { cwd: root, stdio: 'ignore', env: { ...process.env, VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' } });
+const server = spawn('npx', ['vite', 'preview', '--outDir', 'dist-test', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore' });
 const results = [];
 const ok = (name, pass, detail = '') => {
   results.push({ name, pass, detail });

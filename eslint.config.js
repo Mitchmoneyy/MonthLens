@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['dist', 'dist-acct', 'ios', 'node_modules', 'public', 'e2e-fixtures'] },
+  { ignores: ['dist', 'dist-acct', 'dist-test', 'ios', 'node_modules', 'public', 'e2e-fixtures'] },
   ...tseslint.configs.recommended,
   {
     files: ['src/**/*.{ts,tsx}'],

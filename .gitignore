@@ -7,3 +7,4 @@ e2e-fixtures/*.pdf
 dist-acct/
 .env.local
 e2e-fixtures/backup.json
+dist-test/
