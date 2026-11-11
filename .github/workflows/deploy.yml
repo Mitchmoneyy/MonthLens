@@ -41,7 +41,7 @@ jobs:
       - name: Browser tests
         run: |
           npm i --no-save playwright@1.48.2
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
           node scripts/e2e.mjs
           node scripts/a11y.mjs
           node scripts/e2e-account.mjs
