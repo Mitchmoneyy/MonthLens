@@ -1,4 +1,6 @@
-# Weekly pull requests for dependency updates. Each one runs the full test suite before it can merge.
+# One pull request a week for safe dependency updates (minor and patch versions), and one a month
+# for GitHub Actions. Each runs the full test suite. Major versions are skipped on purpose: they
+# can change behaviour (for example Tailwind 3 -> 4) and should be done deliberately.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -6,11 +8,18 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
-      minor-and-patch:
-        update-types: [minor, patch]
+      dependencies:
+        patterns: ['*']
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ['*']

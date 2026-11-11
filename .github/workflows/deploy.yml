@@ -12,8 +12,9 @@ permissions:
   pages: write
   id-token: write
 
+# One queue per branch: a pull request's checks can never cancel a deploy of main.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

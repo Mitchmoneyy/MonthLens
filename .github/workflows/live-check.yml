@@ -8,13 +8,14 @@ on:
   workflow_run:
     workflows: ['Deploy to GitHub Pages']
     types: [completed]
+    branches: [main]
   schedule:
     - cron: '17 13 * * *'
   workflow_dispatch:
 
 jobs:
   check:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
